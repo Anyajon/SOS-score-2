@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #fff1f3; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-6xl mx-auto">
+        
+        <div class="text-center mb-10">
+            <h1 class="text-5xl font-extrabold text-slate-800 tracking-tight">รู้เร็ว รู้ไว ด้วย SOS Score</h1>
+            <p class="text-xl text-slate-600 mt-3 font-medium">แบบประเมินสภาพผู้ป่วยที่มีอาการทรุดลงโดยใช้ SOS Score</p>
+            
+            <div id="clockContainer" class="inline-flex items-center bg-white border border-pink-100 rounded-full py-3 px-8 mt-6 shadow-sm">
+                <i class="far fa-calendar-alt text-pink-500 mr-3 text-lg"></i>
+                <span id="clock" class="text-lg font-bold text-pink-600"></span>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-6 mb-12">
+            <button class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-10 rounded-full transition transform hover:scale-105 shadow-md flex items-center justify-center gap-3 text-lg">
+                <i class="fas fa-stethoscope"></i>
+                <span>ประเมินใหม่</span>
+            </button>
+            <button onclick="searchData()" class="bg-white hover:bg-pink-50 text-pink-500 font-bold py-4 px-10 rounded-full border-2 border-pink-200 transition transform hover:scale-105 shadow-md flex items-center justify-center gap-3 text-lg">
+                <i class="fas fa-search"></i>
+                <span>ค้นหาประวัติ HN</span>
+            </button>
+        </div>
+
+        <div class="bg-white rounded-[2rem] shadow-xl p-8 md:p-10 border border-pink-50">
+            
+            <form id="sosForm" class="space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+                    <div>
+                        <label class="block text-xl font-bold text-slate-700 mb-2">ชื่อ-นามสกุล</label>
+                        <input type="text" name="name" id="nameInput" required 
+                               class="w-full p-4 border rounded-xl border-pink-100 bg-blue-50 text-xl font-medium focus:outline-none focus:ring-4 focus:ring-pink-100 focus:bg-white transition"
+                               placeholder="กรุณาระบุชื่อ-นามสกุล">
+                    </div>
+                    <div>
+                        <label class="block text-xl font-bold text-slate-700 mb-2">เลข HN</label>
+                        <input type="text" name="hn" id="hnInput" required 
+                               class="w-full p-4 border rounded-xl border-pink-100 bg-blue-50 text-xl font-medium focus:outline-none focus:ring-4 focus:ring-pink-100 focus:bg-white transition"
+                               placeholder="ตัวอย่าง: 1234/69">
+                    </div>
+                </div>
+
+                <div class="border-t border-pink-100 pt-8">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6">ข้อมูลสัญญาณชีพ</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1">Temp (°C)</label>
+                            <input type="number" step="0.1" name="temp" oninput="calcScore()" class="w-full p-3 border rounded-lg shadow-inner bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1">SBP (mmHg)</label>
+                            <input type="number" name="sbp" oninput="calcScore()" class="w-full p-3 border rounded-lg shadow-inner bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1">Pulse (bpm)</label>
+                            <input type="number" name="pulse" oninput="calcScore()" class="w-full p-3 border rounded-lg shadow-inner bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1">RR (/min)</label>
+                            <input type="number" name="rr" oninput="calcScore()" class="w-full p-3 border rounded-lg shadow-inner bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-xs text-slate-600 mb-1">Urine in 8 hr. (ml)</label>
+                            <input type="number" name="urine" oninput="calcScore()" class="w-full p-3 border rounded-lg shadow-inner bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1">ความรู้สึกตัว</label>
+                            <select name="con" onchange="calcScore()" class="w-full p-3 border rounded-lg bg-gray-50">
+                                <option value="0">ตื่นดี (รู้ตัว รู้เรื่อง)</option>
+                                <option value="1">สับสน (เพิ่งเกิด)</option>
+                                <option value="1">ซึม (เรียกแล้วลืมตาสะลึมสะลือ)</option>
+                                <option value="2">ซึมมาก (ต้องกระตุ้นจึงจะลืมตา)</option>
+                                <option value="3">ไม่รู้สึกตัว (แม้กระตุ้นแล้ว)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scoreDisplay" class="p-6 rounded-2xl text-center font-bold text-2xl bg-gray-100 transition-all duration-500 shadow-inner">
+                    คะแนนรวม: <span id="totalScore">0</span> | เกณฑ์: <span id="riskLevel">-</span>
+                </div>
+                <div id="guidelineText" class="text-lg text-center px-10 font-medium text-slate-700 italic border border-slate-200 rounded-xl p-4 bg-slate-50">กรุณากรอกข้อมูลสัญญาณชีพ</div>
+
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-5 rounded-2xl transition transform hover:scale-[1.02] shadow-lg text-xl">
+                        <i class="fas fa-save mr-2"></i> บันทึกข้อมูลประเมิน
+                    </button>
+                </div>
+            </form>
+
+            <div id="historySection" class="mt-12 p-8 border-t-2 border-pink-100 hidden bg-pink-50/50 rounded-2xl">
+                <h3 class="font-bold text-2xl mb-5 text-pink-700">ประวัติการประเมิน (HN: <span id="searchHn"></span>)</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse bg-white rounded-lg overflow-hidden shadow">
+                        <thead class="bg-pink-100 text-pink-900">
+                            <tr>
+                                <th class="border border-pink-200 p-3">วันเวลา</th>
+                                <th class="border border-pink-200 p-3 text-center">Score</th>
+                                <th class="border border-pink-200 p-3">เกณฑ์</th>
+                                <th class="border border-pink-200 p-3">Action Plan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody" class="text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div> <footer class="p-8 mt-10 text-center text-sm font-bold text-gray-400 bg-white/50 rounded-2xl tracking-widest shadow-inner border border-gray-100">
+            TropMed, Ward 14
+        </footer>
+
+    </div> <script>
+        // --- ส่วน JavaScript เหมือนเดิม ไม่มีการเปลี่ยนแปลงฟังก์ชันการทำงาน ---
+        function updateClock() {
+            const now = new Date();
+            // ปรับรูปแบบเวลาให้คล้ายตัวอย่าง
+            const options = { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('clock').innerText = now.toLocaleString('th-TH', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function calcScore() {
+            const f = document.getElementById('sosForm');
+            let s = 0;
+            const temp = parseFloat(f.temp.value);
+            if (temp <= 35 || temp >= 38.5) s += 2;
+            else if (temp <= 36 || (temp >= 38.1 && temp <= 38.4)) s += 1;
+            const sbp = parseFloat(f.sbp.value);
+            if (sbp <= 80) s += 3;
+            else if (sbp <= 90 || sbp >= 200) s += 2;
+            else if (sbp <= 100 || (sbp >= 181 && sbp <= 199)) s += 1;
+            const p = parseFloat(f.pulse.value);
+            if (p <= 40 || p >= 140) s += 3;
+            else if (p >= 121 && p <= 139) s += 2;
+            else if ((p >= 41 && p <= 50) || (p >= 101 && p <= 120)) s += 1;
+            const rr = parseFloat(f.rr.value);
+            if (rr <= 8 || rr >= 35) s += 3;
+            else if (rr >= 26 && rr <= 34) s += 2;
+            else if (rr >= 21 && rr <= 25) s += 1;
+            const u = parseFloat(f.urine.value);
+            if (u <= 160) s += 2;
+            else if (u <= 319) s += 1;
+            s += parseInt(f.con.value);
+            document.getElementById('totalScore').innerText = s;
+            let level = "Low", guide = "ให้การดูแลและติดตามผู้ป่วยตามปกติ", color = "bg-green-100 text-green-900 border border-green-200";
+            if (s >= 4) {
+                level = "High";
+                guide = "Record V/S, I/O ทุก 15-30 นาที, รายงานแพทย์เวรประเมินคนไข้, พิจารณาการย้าย ICU...";
+                color = "bg-red-100 text-red-900 border border-red-200";
+            } else if (s >= 1) {
+                level = "Moderate";
+                guide = "Record V/S, I/O ทุก 4 ชั่วโมง, ตรวจติดตามอาการสม่ำเสมอ...";
+                color = "bg-yellow-100 text-yellow-900 border border-yellow-200";
+            }
+            const disp = document.getElementById('scoreDisplay');
+            disp.className = `p-6 rounded-2xl text-center font-bold text-2xl ${color} shadow-inner`;
+            document.getElementById('riskLevel').innerText = level;
+            document.getElementById('guidelineText').innerText = guide;
+            return { score: s, level: level, guide: guide };
+        }
+
+        document.getElementById('sosForm').onsubmit = function(e) {
+            e.preventDefault();
+            const res = calcScore();
+            const formData = {
+                name: this.name.value,
+                hn: this.hn.value,
+                temp: this.temp.value,
+                sbp: this.sbp.value,
+                pulse: this.pulse.value,
+                rr: this.rr.value,
+                urine: this.urine.value,
+                con: this.con.options[this.con.selectedIndex].text,
+                totalScore: res.score,
+                riskLevel: res.level,
+                guideline: res.guide
+            };
+            if (res.score >= 4) {
+                Swal.fire({
+                    title: 'ประเมินสาเหตุ (High Score)',
+                    text: 'สาเหตุเกิดจาก Severe sepsis and Septic shock หรือไม่?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ec4899',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'ใช่',
+                    cancelButtonText: 'ไม่ใช่',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    let nextStepText = "";
+                    if (result.isConfirmed) {
+                        formData.isSepsis = "ใช่";
+                        nextStepText = "ให้ปฏิบัติตาม Flow แนวปฏิบัติการดูแลผู้ป่วยติดเชื้อในกระแสเลือด";
+                    } else {
+                        formData.isSepsis = "ไม่ใช่";
+                        nextStepText = "Monitor ผู้ป่วยทุก 15-30 นาที จน SOS Score < 4 หรือจนกว่า stable, then monitor ทุก 1 ชั่วโมง อีก 4 ชั่วโมง/ monitor ทุก 4 ชั่วโมงจนครบ 24 ชั่วโมง";
+                    }
+                    formData.sepsisAction = nextStepText;
+                    Swal.fire({ title: 'แนวทางปฏิบัติถัดไป', text: nextStepText, icon: 'info', confirmButtonText: 'รับทราบ', confirmButtonColor: '#ec4899' }).then(() => { sendToServer(formData); });
+                });
+            } else {
+                formData.isSepsis = "-";
+                formData.sepsisAction = res.guide;
+                sendToServer(formData);
+            }
+        };
+
+        function sendToServer(data) {
+    // *** สำคัญ: เอา URL ที่ได้จากการ Deploy ในข้อ 1 มาใส่ที่นี่ ***
+    const gasUrl = "https://script.google.com/macros/s/AKfycbwk11HMtnsvqKbxauST47swHwsQKhQux-TWWYjTyy3g9biMo9MKsrz7EAtfsKJitEwkZw/exec";
+
+    // ตรวจสอบสถานะเน็ตก่อนส่ง
+    if (!navigator.onLine) {
+        let queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
+        queue.push(data);
+        localStorage.setItem('sos_offline_queue', JSON.stringify(queue));
+        
+        Swal.fire({
+            icon: 'info',
+            title: 'บันทึกแบบ Offline',
+            text: 'ขณะนี้ไม่มีอินเทอร์เน็ต ข้อมูลถูกเก็บไว้ในเครื่องแล้ว ระบบจะแจ้งให้ส่งอีกครั้งเมื่อเน็ตกลับมา',
+            confirmButtonColor: '#ec4899'
+        });
+        document.getElementById('sosForm').reset();
+        return;
+    }
+
+    // กรณีมีเน็ต ใช้ fetch ส่งข้อมูลแทน google.script.run
+    Swal.fire({ title: 'กำลังส่งข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    
+    fetch(gasUrl, {
+        method: "POST",
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        // เนื่องจาก no-cors จะอ่าน response ไม่ได้ แต่ถ้าถึงจุดนี้คือส่งออกไปแล้ว
+        Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกเรียบร้อย', timer: 2000 });
+        document.getElementById('sosForm').reset();
+        calcScore();
+    })
+    .catch(err => {
+        // กรณีส่งไม่สำเร็จ ให้เก็บเข้าคิว Offline
+        let queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
+        queue.push(data);
+        localStorage.setItem('sos_offline_queue', JSON.stringify(queue));
+        Swal.fire('ผิดพลาด', 'ส่งข้อมูลไม่ได้ ระบบเก็บไว้ในเครื่องให้แล้ว', 'warning');
+    });
+}
+window.addEventListener('online', checkOfflineData);
+function checkOfflineData() {
+    const queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
+    if (queue.length > 0) {
+        Swal.fire({
+            title: 'พบข้อมูลค้างส่ง!',
+            text: `มีข้อมูลประเมิน ${queue.length} รายการที่บันทึกไว้ตอนออฟไลน์ต้องการส่งเข้าระบบเลยไหม?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ส่งข้อมูล',
+            cancelButtonText: 'ไว้ก่อน'
+        }).then((result) => {
+            if (result.isConfirmed) syncOfflineData(queue);
+        });
+    }
+}
+
+function syncOfflineData(queue) {
+    const gasUrl = "https://script.google.com/macros/s/AKfycbwk11HMtnsvqKbxauST47swHwsQKhQux-TWWYjTyy3g9biMo9MKsrz7EAtfsKJitEwkZw/exec";
+    if (queue.length === 0) {
+        localStorage.removeItem('sos_offline_queue');
+        Swal.fire('สำเร็จ', 'ซิงค์ข้อมูลทั้งหมดแล้ว', 'success');
+        return;
+    }
+    const item = queue.shift();
+    fetch(gasUrl, { method: "POST", body: JSON.stringify(item) })
+        .then(() => syncOfflineData(queue))
+        .catch(() => Swal.fire('เกิดข้อผิดพลาด', 'บางรายการส่งไม่สำเร็จ กรุณาลองใหม่ภายหลัง', 'error'));
+}
+        function searchData() {
+    const hn = document.getElementById('hnInput').value;
+    const gasUrl = "https://script.google.com/macros/s/AKfycbwk11HMtnsvqKbxauST47swHwsQKhQux-TWWYjTyy3g9biMo9MKsrz7EAtfsKJitEwkZw/exec";
+
+    if (!hn) return Swal.fire('โปรดระบุ HN เพื่อค้นหา');
+
+    Swal.fire({ title: 'กำลังค้นหา...', didOpen: () => Swal.showLoading() });
+
+    fetch(gasUrl + "?hn=" + hn) // ส่งแบบ GET ไปที่ Google Script
+        .then(res => res.json())
+        .then(data => {
+            Swal.close();
+            if (!data || data.length === 0) return Swal.fire('ไม่พบประวัติ', 'ยังไม่เคยมีการบันทึกข้อมูลสำหรับ HN นี้', 'info');
+            
+            document.getElementById('historySection').classList.remove('hidden');
+            document.getElementById('searchHn').innerText = hn;
+            let html = '';
+            data.forEach(row => {
+                html += `<tr class="hover:bg-pink-50 border-b border-pink-100">
+                    <td class="p-3">${row[0]}</td>
+                    <td class="p-3 text-center font-bold text-lg">${row[10]}</td>
+                    <td class="p-3 font-medium">${row[11]}</td>
+                    <td class="p-3 text-xs">${row[14]}</td>
+                </tr>`;
+            });
+            document.getElementById('historyBody').innerHTML = html;
+        })
+        .catch(err => Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'));
+}
+    // ส่วนของ PWA Service Worker (ต้องอยู่ในแท็ก script เดียวกัน)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('PWA Ready!');
+            }).catch(err => console.log('SW Error', err));
+        });
+    }
+</script>
+</body>
+</html>
