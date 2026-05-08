@@ -221,7 +221,7 @@
 
         function sendToServer(data) {
     // *** สำคัญ: เอา URL ที่ได้จากการ Deploy ในข้อ 1 มาใส่ที่นี่ ***
-    const gasUrl = "https://script.google.com/macros/s/AKfycbwk11HMtnsvqKbxauST47swHwsQKhQux-TWWYjTyy3g9biMo9MKsrz7EAtfsKJitEwkZw/exec";
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxxkpLtUOTwbxvil8yfuk6NBIA1tcdxQXb6QxATVBHtXQkzwfde-Itjli_dTQSXG11vxQ/exec";
 
     // ตรวจสอบสถานะเน็ตก่อนส่ง
     if (!navigator.onLine) {
@@ -278,7 +278,7 @@ function checkOfflineData() {
 }
 
 function syncOfflineData(queue) {
-    const gasUrl = "https://script.google.com/macros/s/AKfycbwk11HMtnsvqKbxauST47swHwsQKhQux-TWWYjTyy3g9biMo9MKsrz7EAtfsKJitEwkZw/exec";
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxxkpLtUOTwbxvil8yfuk6NBIA1tcdxQXb6QxATVBHtXQkzwfde-Itjli_dTQSXG11vxQ/exec";
     if (queue.length === 0) {
         localStorage.removeItem('sos_offline_queue');
         Swal.fire('สำเร็จ', 'ซิงค์ข้อมูลทั้งหมดแล้ว', 'success');
@@ -291,7 +291,7 @@ function syncOfflineData(queue) {
 }
         function searchData() {
     const hn = document.getElementById('hnInput').value;
-    const gasUrl = "https://script.google.com/macros/s/AKfycbwk11HMtnsvqKbxauST47swHwsQKhQux-TWWYjTyy3g9biMo9MKsrz7EAtfsKJitEwkZw/exec";
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxxkpLtUOTwbxvil8yfuk6NBIA1tcdxQXb6QxATVBHtXQkzwfde-Itjli_dTQSXG11vxQ/exec";
 
     if (!hn) return Swal.fire('โปรดระบุ HN เพื่อค้นหา');
 
