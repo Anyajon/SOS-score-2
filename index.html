@@ -177,7 +177,67 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
+// 1. ฟังก์ชันค้นหาข้อมูลคนไข้จากเลขห้อง
+    function searchByRoom() {
+        const room = document.getElementById('roomInput').value;
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwDN5fMbkIpV6bUcjZGg1EjmY59zhBJMEJCzOTmVmwdJU4Du7Y-_xFIzX5JA5Z6dae_zA/exec";
 
+        if (!room) return Swal.fire('กรุณาระบุเลขห้อง');
+
+        Swal.fire({ title: 'กำลังตรวจสอบสถานะเตียง...', didOpen: () => Swal.showLoading() });
+
+        fetch(`${gasUrl}?action=getPatient&room=${room}`)
+            .then(res => res.json())
+            .then(patient => {
+                Swal.close();
+                if (patient) {
+                    document.getElementById('patientInfo').classList.remove('hidden');
+                    document.getElementById('emptyRoom').classList.add('hidden');
+                    document.getElementById('displayRoom').innerText = patient.room;
+                    document.getElementById('displayName').innerText = patient.name;
+                    document.getElementById('displayHN').innerText = patient.hn;
+                    
+                    // เติมข้อมูลลงฟอร์ม SOS ให้อัตโนมัติ
+                    document.getElementById('nameInput').value = patient.name;
+                    document.getElementById('hnInput').value = patient.hn;
+                } else {
+                    document.getElementById('patientInfo').classList.add('hidden');
+                    document.getElementById('emptyRoom').classList.remove('hidden');
+                }
+            })
+            .catch(err => Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบจัดการเตียงได้', 'error'));
+    }
+
+    // 2. ฟังก์ชันสำหรับกด Discharge (จำหน่าย) คนไข้
+    function handleDischarge() {
+        const hn = document.getElementById('displayHN').innerText;
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwDN5fMbkIpV6bUcjZGg1EjmY59zhBJMEJCzOTmVmwdJU4Du7Y-_xFIzX5JA5Z6dae_zA/exec";
+
+        Swal.fire({
+            title: 'ยืนยันการจำหน่าย?',
+            text: `คุณกำลังจะจำหน่ายคนไข้ HN: ${hn} ออกจากเตียงนี้`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'ยืนยัน Discharge',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+                fetch(gasUrl, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "discharge", hn: hn })
+                })
+                .then(() => {
+                    Swal.fire('จำหน่ายเรียบร้อย', '', 'success').then(() => location.reload());
+                });
+            }
+        });
+    }
+
+    // --- ฟังก์ชัน calcScore() และอื่นๆ ของเดิม ---
+    function calcScore() { ... }
+</script>
         function calcScore() {
             const f = document.getElementById('sosForm');
             let s = 0;
