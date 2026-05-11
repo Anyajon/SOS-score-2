@@ -1,9 +1,13 @@
-const CACHE_NAME = 'sos-score-v2';
+const CACHE_NAME = 'sos-score-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './icon.png' // ถ้ามีไฟล์ไอคอน ให้ใส่ชื่อให้ตรง ถ้าไม่มีให้ลบออกครับ
+  'https://cdn.tailwindcss.com',
+  'https://cdn.jsdelivr.net/npm/sweetalert2@11',
+  'https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
 ];
 
 // 1. ติดตั้ง Service Worker (Install)
@@ -36,9 +40,9 @@ self.addEventListener('activate', (event) => {
 // 3. ดึงข้อมูล (Fetch) - หัวใจหลักของการทำงาน Offline
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request).catch(() => {
-      // ถ้าเน็ตหลุด ให้ไปค้นหาไฟล์จาก Cache มาแสดงแทน
-      return caches.match(event.request);
+    caches.match(event.request).then((response) => {
+      // ถ้าเจอใน Cache ให้ส่งคืนเลย ถ้าไม่เจอค่อยไปดึงจากเน็ต
+      return response || fetch(event.request);
     })
   );
 });
