@@ -55,16 +55,30 @@
   </button>
 </div>
 
-        <div class="flex flex-col sm:flex-row justify-center gap-6 mb-12">
-            <button class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-10 rounded-full transition transform hover:scale-105 shadow-md flex items-center justify-center gap-3 text-lg">
-                <i class="fas fa-stethoscope"></i>
-                <span>ประเมินใหม่</span>
-            </button>
-            <button onclick="searchData()" class="bg-white hover:bg-pink-50 text-pink-500 font-bold py-4 px-10 rounded-full border-2 border-pink-200 transition transform hover:scale-105 shadow-md flex items-center justify-center gap-3 text-lg">
-                <i class="fas fa-search"></i>
-                <span>ค้นหาประวัติ HN</span>
-            </button>
-        </div>
+       <div class="flex justify-center mb-6">
+    <div class="relative w-full max-w-sm">
+        <input type="text" id="roomInput" placeholder="ระบุเลขห้อง/เตียง" 
+               class="w-full p-4 pl-12 border-2 border-pink-200 rounded-full text-center focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-sm">
+        <i class="fas fa-bed absolute left-5 top-5 text-pink-300"></i>
+    </div>
+</div>
+
+<div class="flex flex-col sm:flex-row justify-center gap-6 mb-12">
+    <button onclick="searchByRoom()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-10 rounded-full transition transform hover:scale-105 shadow-md flex items-center justify-center gap-3 text-lg">
+        <i class="fas fa-search-location"></i>
+        <span>ดึงข้อมูลจากห้อง</span>
+    </button>
+
+    <button onclick="location.reload()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-10 rounded-full transition transform hover:scale-105 shadow-md flex items-center justify-center gap-3 text-lg">
+        <i class="fas fa-stethoscope"></i>
+        <span>ประเมินใหม่</span>
+    </button>
+
+    <button onclick="searchData()" class="bg-white hover:bg-pink-50 text-pink-500 font-bold py-4 px-10 rounded-full border-2 border-pink-200 transition transform hover:scale-105 shadow-md flex items-center justify-center gap-3 text-lg">
+        <i class="fas fa-history"></i>
+        <span>ค้นหาประวัติ HN</span>
+    </button>
+</div>
 
         <div class="bg-white rounded-[2rem] shadow-xl p-8 md:p-10 border border-pink-50">
             
