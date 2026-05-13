@@ -1,10 +1,9 @@
-const CACHE_NAME = 'sos-score-v4';
+const CACHE_NAME = 'sos-score-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png', // แก้ชื่อให้ตรงกับใน manifest.json
-  './icon-512.png',
+  './icon.png',
   'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net/npm/sweetalert2@11',
   'https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap',
