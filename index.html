@@ -378,11 +378,14 @@
     }
 
    function showAdmitForm() {
-    // 1. เลื่อนหน้าจอไปที่ส่วนของฟอร์ม (id="sosForm")
+    // 1. ล้างข้อมูลเก่าที่ค้างอยู่ในฟอร์มออกก่อน
+    document.getElementById('sosForm').reset();
+    
+    // 2. เลื่อนหน้าจอไปที่ส่วนของฟอร์ม
     const formElement = document.getElementById('sosForm');
     formElement.scrollIntoView({ behavior: 'smooth' });
 
-    // 2. สั่งให้เคอร์เซอร์ไปกระพริบที่ช่อง "ชื่อ-นามสกุล" ทันที
+    // 3. สั่งให้เคอร์เซอร์ไปกระพริบที่ช่อง "ชื่อ-นามสกุล"
     setTimeout(() => {
         document.getElementById('nameInput').focus();
     }, 500); 
