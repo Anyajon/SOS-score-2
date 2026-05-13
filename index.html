@@ -163,7 +163,7 @@
 
     <script>
     // --- 1. CONFIG & SYSTEM ---
-    const gasUrl = "https://script.google.com/macros/s/AKfycbzvqqnjUrZQmtoyCJE-MdhA8zI_GsZGu9onXWsy5kH0ig7dM0UPhZiRglIkVFiOp7Vf/exec";
+    const gasUrl = "https://script.google.com/macros/s/AKfycbzOt4i1ahZ7tZ_kxgJAY6o6bTxsAhVTA8HILNWH0J7hgcQHHxjBJWbhyPBjBEO0chI6xQ/exec";
 
     function updateClock() {
         const now = new Date();
@@ -377,18 +377,57 @@
         fetch(gasUrl, { method: "POST", body: JSON.stringify(item) }).then(() => syncOffline(queue));
     }
 
-   function showAdmitForm() {
-    // 1. ล้างข้อมูลเก่าที่ค้างอยู่ในฟอร์มออกก่อน
-    document.getElementById('sosForm').reset();
-    
-    // 2. เลื่อนหน้าจอไปที่ส่วนของฟอร์ม
-    const formElement = document.getElementById('sosForm');
-    formElement.scrollIntoView({ behavior: 'smooth' });
+  async function showAdmitForm() {
+    // 1. ถามเลขห้องที่จะ Admit ก่อน
+    const { value: roomNumber } = await Swal.fire({
+        title: 'Admit คนไข้ใหม่',
+        input: 'text',
+        inputLabel: 'ระบุเลขห้อง/เตียง',
+        inputPlaceholder: 'เช่น 1401',
+        showCancelButton: true,
+        confirmButtonText: 'ถัดไป',
+        cancelButtonText: 'ยกเลิก'
+    });
 
-    // 3. สั่งให้เคอร์เซอร์ไปกระพริบที่ช่อง "ชื่อ-นามสกุล"
-    setTimeout(() => {
-        document.getElementById('nameInput').focus();
-    }, 500); 
+    if (!roomNumber) return; // ถ้าไม่กรอกเลขห้อง ให้หยุดการทำงาน
+
+    // 2. ถามชื่อและ HN (ใช้ SweetAlert เพื่อความรวดเร็ว หรือจะให้เลื่อนไปกรอกที่ฟอร์มก็ได้)
+    const { value: formValues } = await Swal.fire({
+        title: `Admit เข้าห้อง ${roomNumber}`,
+        html:
+            '<input id="swal-input1" class="swal2-input" placeholder="ชื่อ-นามสกุล">' +
+            '<input id="swal-input2" class="swal2-input" placeholder="เลข HN">',
+        focusConfirm: false,
+        preConfirm: () => {
+            return [
+                document.getElementById('swal-input1').value,
+                document.getElementById('swal-input2').value
+            ]
+        }
+    });
+
+    if (formValues && formValues[0] && formValues[1]) {
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+
+        // 3. ส่งข้อมูลไปที่ GAS เพื่อบันทึกลง BedManagement
+        const admitData = {
+            action: "admit", // ต้องแน่ใจว่าใน GS มี case "admit" รองรับ
+            room: roomNumber,
+            name: formValues[0],
+            hn: formValues[1]
+        };
+
+        fetch(gasUrl, { method: "POST", body: JSON.stringify(admitData) })
+            .then(res => res.json())
+            .then(result => {
+                Swal.fire('สำเร็จ', 'ลงทะเบียนเตียงเรียบร้อย', 'success').then(() => {
+                    // เมื่อบันทึกเสร็จ ให้ทำการค้นหาห้องนั้นทันทีเพื่อโชว์ข้อมูล
+                    document.getElementById('roomInput').value = roomNumber;
+                    searchByRoom(); 
+                });
+            })
+            .catch(err => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error'));
+    }
 }
     </script>
 </body>
