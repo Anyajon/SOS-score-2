@@ -163,7 +163,7 @@
 
     <script>
     // --- 1. CONFIG & SYSTEM ---
-    const gasUrl = "https://script.google.com/macros/s/AKfycbzOt4i1ahZ7tZ_kxgJAY6o6bTxsAhVTA8HILNWH0J7hgcQHHxjBJWbhyPBjBEO0chI6xQ/exec";
+    const gasUrl = "https://script.google.com/macros/s/AKfycbyIgfOmZSCA70hvSMD19bc8L72n4XvpWS6qIR8kAfz0l3bJ86Op7kWLF1JN31Li7Ammjw/exec";
 
     function updateClock() {
         const now = new Date();
@@ -275,11 +275,12 @@
         return { score: s, level: level, guide: guide };
     }
 
-    // --- 4. SUBMIT DATA ---
+    // --- แก้ไขส่วนส่งข้อมูล SOS Form (เพื่อให้แมตช์กับ Code.gs) ---
     document.getElementById('sosForm').onsubmit = function(e) {
         e.preventDefault();
         const res = calcScore();
         const formData = {
+            action: "saveScore", // เพิ่ม action เพื่อความชัดเจน (ถ้า Code.gs รับได้)
             room: document.getElementById('roomInput').value,
             name: this.name.value,
             hn: this.hn.value,
@@ -288,7 +289,7 @@
             pulse: this.pulse.value,
             rr: this.rr.value,
             urine: this.urine.value,
-            con: this.con.options[this.con.selectedIndex].text,
+            con: this.con.options[this.con.selectedIndex].text, // ส่งเป็นชื่อระดับความรู้สึก
             totalScore: res.score,
             riskLevel: res.level,
             guideline: res.guide
@@ -378,57 +379,47 @@
     }
 
   async function showAdmitForm() {
-    // 1. ถามเลขห้องที่จะ Admit ก่อน
-    const { value: roomNumber } = await Swal.fire({
-        title: 'Admit คนไข้ใหม่',
-        input: 'text',
-        inputLabel: 'ระบุเลขห้อง/เตียง',
-        inputPlaceholder: 'เช่น 1401',
-        showCancelButton: true,
-        confirmButtonText: 'ถัดไป',
-        cancelButtonText: 'ยกเลิก'
-    });
+        const { value: formValues } = await Swal.fire({
+            title: 'Admit คนไข้ใหม่',
+            html:
+                '<input id="swal-room" class="swal2-input" placeholder="เลขห้อง/เตียง">' +
+                '<input id="swal-name" class="swal2-input" placeholder="ชื่อ-นามสกุล">' +
+                '<input id="swal-hn" class="swal2-input" placeholder="เลข HN">',
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน Admit',
+            preConfirm: () => {
+                const room = document.getElementById('swal-room').value;
+                const name = document.getElementById('swal-name').value;
+                const hn = document.getElementById('swal-hn').value;
+                if (!room || !name || !hn) {
+                    Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน')
+                }
+                return { room, name, hn }
+            }
+        });
 
-    if (!roomNumber) return; // ถ้าไม่กรอกเลขห้อง ให้หยุดการทำงาน
-
-    // 2. ถามชื่อและ HN (ใช้ SweetAlert เพื่อความรวดเร็ว หรือจะให้เลื่อนไปกรอกที่ฟอร์มก็ได้)
-    const { value: formValues } = await Swal.fire({
-        title: `Admit เข้าห้อง ${roomNumber}`,
-        html:
-            '<input id="swal-input1" class="swal2-input" placeholder="ชื่อ-นามสกุล">' +
-            '<input id="swal-input2" class="swal2-input" placeholder="เลข HN">',
-        focusConfirm: false,
-        preConfirm: () => {
-            return [
-                document.getElementById('swal-input1').value,
-                document.getElementById('swal-input2').value
-            ]
-        }
-    });
-
-    if (formValues && formValues[0] && formValues[1]) {
-        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-
-        // 3. ส่งข้อมูลไปที่ GAS เพื่อบันทึกลง BedManagement
-        const admitData = {
-            action: "admit", // ต้องแน่ใจว่าใน GS มี case "admit" รองรับ
-            room: roomNumber,
-            name: formValues[0],
-            hn: formValues[1]
-        };
-
-        fetch(gasUrl, { method: "POST", body: JSON.stringify(admitData) })
+        if (formValues) {
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            fetch(gasUrl, {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "admit",
+                    room: formValues.room,
+                    name: formValues.name,
+                    hn: formValues.hn
+                })
+            })
             .then(res => res.json())
             .then(result => {
-                Swal.fire('สำเร็จ', 'ลงทะเบียนเตียงเรียบร้อย', 'success').then(() => {
-                    // เมื่อบันทึกเสร็จ ให้ทำการค้นหาห้องนั้นทันทีเพื่อโชว์ข้อมูล
-                    document.getElementById('roomInput').value = roomNumber;
-                    searchByRoom(); 
-                });
+                if (result.status === "success") {
+                    Swal.fire('สำเร็จ', 'Admit คนไข้เข้าเตียงเรียบร้อย', 'success')
+                        .then(() => {
+                            document.getElementById('roomInput').value = formValues.room;
+                            searchByRoom(); // เรียกค้นหาใหม่เพื่ออัปเดตหน้าจอ
+                        });
+                }
             })
-            .catch(err => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error'));
+            .catch(err => Swal.fire('ผิดพลาด', err.toString(), 'error'));
+        }
     }
-}
-    </script>
-</body>
-</html>
