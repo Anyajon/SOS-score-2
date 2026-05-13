@@ -293,29 +293,37 @@ window.addEventListener('load', (event) => {
     // ระดับความรู้สึกตัว (ดึงจากค่า value ของ option)
     const conVal = parseInt(f.elements['con'].value);
     if (!isNaN(conVal)) s += conVal;
-
-    // --- แสดงผลบนหน้าจอ ---
+    // การแสดงผลหน้าจอ
     const totalScoreElem = document.getElementById('totalScore');
     const riskLevelElem = document.getElementById('riskLevel');
     const scoreDisplay = document.getElementById('scoreDisplay');
+    const guidelineTextElem = document.getElementById('guidelineText'); // เพิ่มตัวแปรนี้
 
     if (totalScoreElem) totalScoreElem.innerText = s;
 
-    // กำหนดเกณฑ์และสี
-    let level = "Low", colorClass = "bg-green-100 text-green-700";
+    // 1. กำหนดเกณฑ์และสี และ "ข้อความแนวทางปฏิบัติ"
+    let level = "Low", guide = "ให้การดูแลและติดตามผู้ป่วยตามปกติ", colorClass = "bg-green-100 text-green-700";
+    
     if (s >= 4) {
         level = "High";
+        guide = "⚠️ Record V/S, I/O ทุก 15-30นาที, รายงานแพทย์เวรประเมินคนไข้";
         colorClass = "bg-red-500 text-white";
     } else if (s >= 1) {
         level = "Moderate";
+        guide = "📋 Record V/S, I/O ทุก 4 ชั่วโมง, รายงาน In-charge";
         colorClass = "bg-yellow-400 text-slate-800";
     }
 
+    // 2. พ่นคำแนะนำลงหน้าจอแบบ Real-time
     if (riskLevelElem) riskLevelElem.innerText = level;
+    if (guidelineTextElem) guidelineTextElem.innerText = guide; 
+    
     if (scoreDisplay) {
-        // ล้าง Class สีเก่าและใส่ Class ใหม่
         scoreDisplay.className = `p-5 rounded-3xl text-center transition-all duration-500 ${colorClass}`;
     }
+
+    // 3. สำคัญมาก: ต้อง return ค่าออกไปให้ปุ่ม "บันทึก" ใช้งานด้วย
+    return { score: s, level: level, guide: guide };
 }
     // --- แก้ไขส่วนส่งข้อมูล SOS Form (เพื่อให้แมตช์กับ Code.gs) ---
     document.getElementById('sosForm').onsubmit = function(e) {
