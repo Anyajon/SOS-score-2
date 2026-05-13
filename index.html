@@ -377,14 +377,15 @@
         fetch(gasUrl, { method: "POST", body: JSON.stringify(item) }).then(() => syncOffline(queue));
     }
 
-    function showAdmitForm() { document.getElementById('nameInput').focus(); }
-        // เพิ่มโค้ดนี้เพื่อสั่งให้ PWA ทำงาน Offline ได้
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('Service Worker Registered'))
-      .catch(err => console.log('Service Worker Failed', err));
-  });
+   function showAdmitForm() {
+    // 1. เลื่อนหน้าจอไปที่ส่วนของฟอร์ม (id="sosForm")
+    const formElement = document.getElementById('sosForm');
+    formElement.scrollIntoView({ behavior: 'smooth' });
+
+    // 2. สั่งให้เคอร์เซอร์ไปกระพริบที่ช่อง "ชื่อ-นามสกุล" ทันที
+    setTimeout(() => {
+        document.getElementById('nameInput').focus();
+    }, 500); 
 }
     </script>
 </body>
