@@ -234,28 +234,26 @@ window.addEventListener('load', (event) => {
     if (!f) return;
 
     let s = 0;
-
-    // ฟังก์ชันช่วยดึงค่า ถ้าว่างให้เป็น 0 หรือข้ามไป ไม่ให้เกิด NaN
     const getVal = (name) => {
         const val = f.elements[name].value;
-        return val !== "" ? parseFloat(val) : null;
+        return (val !== "" && val !== undefined) ? parseFloat(val) : null;
     };
 
+    // การคำนวณคะแนนตามเกณฑ์
     const temp = getVal('temp');
     if (temp !== null) {
         if (temp <= 35 || temp >= 38.5) s += 2;
         else if (temp <= 36 || (temp >= 38.1 && temp <= 38.4)) s += 1;
     }
 
-   const sbp = getVal('sbp');
-if (sbp !== null) {
-    if (sbp <= 80) s += 3;
-    else if (sbp <= 90) s += 2; // 81-90
-    else if (sbp <= 100) s += 1; // 91-100
-    else if (sbp >= 101 && sbp <= 180) s += 0;
-    else if (sbp <= 199) s += 1; // 181-199
-    else if (sbp >= 200) s += 2;
-}
+    const sbp = getVal('sbp');
+    if (sbp !== null) {
+        if (sbp <= 80) s += 3;
+        else if (sbp <= 90) s += 2;
+        else if (sbp <= 100) s += 1;
+        else if (sbp >= 181 && sbp <= 199) s += 1;
+        else if (sbp >= 200) s += 2;
+    }
 
     const p = getVal('pulse');
     if (p !== null) {
@@ -277,29 +275,25 @@ if (sbp !== null) {
         else if (u <= 319) s += 1;
     }
 
-    // สำหรับ Select (ความรู้สึกตัว)
     s += parseInt(f.elements['con'].value) || 0;
 
-    // แสดงผลคะแนน
+    // อัปเดตการแสดงผลบนหน้าจอ
     document.getElementById('totalScore').innerText = s;
 
-    // กำหนดเกณฑ์และสี
-    let level = "Low", guide = "ให้การดูแลและติดตามผู้ป่วยตามปกติ", color = "bg-green-100 text-green-900 border border-green-200";
-    
+    let level = "Low", guide = "ให้การดูแลและติดตามผู้ป่วยตามปกติ", color = "bg-green-100 text-green-900 border-green-200";
     if (s >= 4) {
         level = "High";
-        guide = "🆘 Record V/S, I/O ทุก 15-30 นาที, รายงานแพทย์เวรประเมินคนไข้";
-        color = "bg-red-500 text-white border-red-600"; // สีแดงเข้มขึ้นเพื่อให้เห็นชัด
+        guide = "🆘 Record V/S, I/O ทุก 15-30 นาที, รายงานแพทย์เวร";
+        color = "bg-red-500 text-white border-red-600";
     } else if (s >= 1) {
         level = "Moderate";
         guide = "📋 Record V/S, I/O ทุก 4 ชั่วโมง, รายงาน In-charge";
-        color = "bg-yellow-100 text-yellow-900 border border-yellow-300";
+        color = "bg-yellow-100 text-yellow-900 border-yellow-300";
     }
 
     const disp = document.getElementById('scoreDisplay');
-    if (disp) {
-        disp.className = `p-6 rounded-2xl text-center font-bold text-2xl transition-all duration-300 ${color} shadow-inner`;
-    }
+    if (disp) disp.className = `p-6 rounded-2xl text-center font-bold text-2xl transition-all duration-300 ${color} shadow-inner`;
+    
     document.getElementById('riskLevel').innerText = level;
     document.getElementById('guidelineText').innerText = guide;
 
