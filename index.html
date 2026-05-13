@@ -181,34 +181,24 @@ window.addEventListener('load', (event) => {
 
     // --- 2. SEARCH & PATIENT MGMT ---
     function searchByRoom() {
-        const room = document.getElementById('roomInput').value;
-        if (!room) return Swal.fire('ระบุเลขห้อง');
+    const room = document.getElementById('roomInput').value;
+    if (!room) return;
 
-        Swal.fire({ title: 'กำลังดึงข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-        fetch(`${gasUrl}?action=getPatient&room=${room}`)
-            .then(res => res.json())
-            .then(patient => {
-                Swal.close();
-                if (patient && patient.hn) {
-                    document.getElementById('patientInfo').classList.remove('hidden');
-                    document.getElementById('emptyRoom').classList.add('hidden');
-                    // Fill Info
-                    document.getElementById('displayRoom').innerText = patient.room;
-                    document.getElementById('displayName').innerText = patient.name;
-                    document.getElementById('displayHN').innerText = patient.hn;
-                    // Fill Form
-                    document.getElementById('nameInput').value = patient.name;
-                    document.getElementById('hnInput').value = patient.hn;
-                    Swal.fire({ icon: 'success', title: 'พบข้อมูลคนไข้', timer: 1000, showConfirmButton: false });
-                } else {
-                    document.getElementById('patientInfo').classList.add('hidden');
-                    document.getElementById('emptyRoom').classList.remove('hidden');
-                    Swal.fire('เตียงว่าง', 'ไม่มีคนไข้ในระบบ BedRegistry', 'info');
-                }
-            })
-            .catch(() => Swal.fire('ผิดพลาด', 'เชื่อมต่อ Server ไม่ได้', 'error'));
-    }
+    fetch(`${gasUrl}?action=getPatient&room=${room}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data) {
+                document.getElementById('patientName').innerText = data.name;
+                document.getElementById('patientHN').innerText = data.hn;
+                document.getElementById('hnInput').value = data.hn;
+                document.getElementById('nameInput').value = data.name;
+                // เมื่อเจอคนไข้ ให้โหลดประวัติด้วย
+                loadHistory(data.hn);
+            } else {
+                Swal.fire('ไม่พบข้อมูล', 'ไม่มีคนไข้ Active ในห้องนี้', 'info');
+            }
+        });
+}
 
     function handleDischarge() {
         const hn = document.getElementById('displayHN').innerText;
