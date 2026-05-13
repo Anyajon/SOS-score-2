@@ -166,13 +166,32 @@
     const gasUrl = "https://script.google.com/macros/s/AKfycbyIgfOmZSCA70hvSMD19bc8L72n4XvpWS6qIR8kAfz0l3bJ86Op7kWLF1JN31Li7Ammjw/exec";
 
     function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleString('th-TH', { 
-            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' 
-        });
+    const now = new Date();
+    // ปรับรูปแบบการแสดงผลให้สวยงาม
+    const options = { 
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric', // เพิ่มปีถ้าต้องการ
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false // ใช้เวลาแบบ 24 ชั่วโมง
+    };
+    
+    const clockElement = document.getElementById('clock');
+    if (clockElement) {
+        clockElement.innerText = now.toLocaleString('th-TH', options);
     }
-    setInterval(updateClock, 1000);
-    window.onload = () => { updateClock(); checkOfflineData(); };
+}
+
+// เรียกทำงานทุกๆ 1 วินาที
+setInterval(updateClock, 1000);
+
+// สำคัญ: ต้องเรียก updateClock() ทันทีที่โหลดหน้าเสร็จ เพื่อไม่ให้หน้าจอว่างเปล่าในวินาทีแรก
+window.addEventListener('load', (event) => {
+    updateClock(); 
+    checkOfflineData();
+});
 
     // --- 2. SEARCH & PATIENT MGMT ---
     function searchByRoom() {
