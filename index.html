@@ -247,12 +247,15 @@ window.addEventListener('load', (event) => {
         else if (temp <= 36 || (temp >= 38.1 && temp <= 38.4)) s += 1;
     }
 
-    const sbp = getVal('sbp');
-    if (sbp !== null) {
-        if (sbp <= 80) s += 3;
-        else if (sbp <= 90 || sbp >= 200) s += 2;
-        else if (sbp <= 100 || (sbp >= 181 && sbp <= 199)) s += 1;
-    }
+   const sbp = getVal('sbp');
+if (sbp !== null) {
+    if (sbp <= 80) s += 3;
+    else if (sbp <= 90) s += 2; // 81-90
+    else if (sbp <= 100) s += 1; // 91-100
+    else if (sbp >= 101 && sbp <= 180) s += 0;
+    else if (sbp <= 199) s += 1; // 181-199
+    else if (sbp >= 200) s += 2;
+}
 
     const p = getVal('pulse');
     if (p !== null) {
