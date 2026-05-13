@@ -243,21 +243,24 @@ window.addEventListener('load', (event) => {
     }
 
     // --- 3. SOS SCORE CALCULATION ---
-   // --- 3. SOS SCORE CALCULATION (ปรับปรุงให้แม่นยำตามเกณฑ์) ---
-function calcScore() {
+   function calcScore() {
+    // 1. ดึงฟอร์มมาตรวจสอบ
     const f = document.getElementById('sosForm');
+    if (!f) return; 
+
     let s = 0;
-    
-    // Temperature
-    const temp = parseFloat(f.temp.value);
+
+    // ฟังก์ชันช่วยดึงค่าตัวเลข
+    const getVal = (name) => parseFloat(f.elements[name].value);
+
+    // --- การคำนวณแต่ละตัว (เพิ่มเงื่อนไขเช็ค NaN) ---
+    const temp = getVal('temp');
     if (!isNaN(temp)) {
         if (temp <= 35 || temp >= 38.5) s += 2;
         else if (temp <= 36 || (temp >= 38.1 && temp <= 38.4)) s += 1;
-        // 36.1 - 38.0 = 0 points
     }
 
-    // SBP
-    const sbp = parseFloat(f.sbp.value);
+    const sbp = getVal('sbp');
     if (!isNaN(sbp)) {
         if (sbp <= 80) s += 3;
         else if (sbp >= 81 && sbp <= 90) s += 2;
@@ -267,53 +270,53 @@ function calcScore() {
         else if (sbp >= 200) s += 2;
     }
 
-    // Pulse
-    const p = parseFloat(f.pulse.value);
+    const p = getVal('pulse');
     if (!isNaN(p)) {
         if (p <= 40 || p >= 140) s += 3;
         else if (p >= 121 && p <= 139) s += 2;
         else if ((p >= 41 && p <= 50) || (p >= 101 && p <= 120)) s += 1;
     }
 
-    // RR
-    const rr = parseFloat(f.rr.value);
+    const rr = getVal('rr');
     if (!isNaN(rr)) {
         if (rr <= 8 || rr >= 35) s += 3;
         else if (rr >= 26 && rr <= 34) s += 2;
         else if (rr >= 21 && rr <= 25) s += 1;
     }
 
-    // Urine (เงื่อนไข: <=160=2, 161-319=1, >=320=0)
-    const u = parseFloat(f.urine.value);
+    const u = getVal('urine');
     if (!isNaN(u)) {
         if (u <= 160) s += 2;
         else if (u >= 161 && u <= 319) s += 1;
-        else if (u >= 320) s += 0;
     }
 
-    s += parseInt(f.con.value);
-    document.getElementById('totalScore').innerText = s;
+    // ระดับความรู้สึกตัว (ดึงจากค่า value ของ option)
+    const conVal = parseInt(f.elements['con'].value);
+    if (!isNaN(conVal)) s += conVal;
 
-    let level = "Low", guide = "ให้การดูแลและติดตามผู้ป่วยตามปกติ, ประเมิน SOS Score ตามปกติ", color = "bg-green-100 text-green-700";
-    
-    if (s >= 4) { 
-        level = "High"; 
-        guide = "Record V/S, I/O ทุก 15-30นาที, รายงานแพทย์เวรประเมินคนไข้, พิจารณาจอง ICU"; 
-        color = "bg-red-500 text-white"; 
-    }
-    else if (s >= 1) { 
-        level = "Moderate"; 
-        guide = "Record V/S, I/O ทุก 4 ชั่วโมง, รายงาน incharge เพื่อพิจารณารายงานแพทย์ตามความเหมาะสม"; 
-        color = "bg-yellow-400 text-slate-800"; 
+    // --- แสดงผลบนหน้าจอ ---
+    const totalScoreElem = document.getElementById('totalScore');
+    const riskLevelElem = document.getElementById('riskLevel');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+
+    if (totalScoreElem) totalScoreElem.innerText = s;
+
+    // กำหนดเกณฑ์และสี
+    let level = "Low", colorClass = "bg-green-100 text-green-700";
+    if (s >= 4) {
+        level = "High";
+        colorClass = "bg-red-500 text-white";
+    } else if (s >= 1) {
+        level = "Moderate";
+        colorClass = "bg-yellow-400 text-slate-800";
     }
 
-    const disp = document.getElementById('scoreDisplay');
-    disp.className = `p-5 rounded-3xl text-center transition-all duration-500 ${color} shadow-inner`;
-    document.getElementById('riskLevel').innerText = level;
-    document.getElementById('guidelineText').innerText = guide;
-    return { score: s, level: level, guide: guide };
+    if (riskLevelElem) riskLevelElem.innerText = level;
+    if (scoreDisplay) {
+        // ล้าง Class สีเก่าและใส่ Class ใหม่
+        scoreDisplay.className = `p-5 rounded-3xl text-center transition-all duration-500 ${colorClass}`;
+    }
 }
-
     // --- แก้ไขส่วนส่งข้อมูล SOS Form (เพื่อให้แมตช์กับ Code.gs) ---
     document.getElementById('sosForm').onsubmit = function(e) {
         e.preventDefault();
