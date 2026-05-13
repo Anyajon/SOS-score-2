@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sos-score-v5';
+const CACHE_NAME = 'sos-score-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
