@@ -259,9 +259,9 @@
         s += parseInt(f.con.value);
         document.getElementById('totalScore').innerText = s;
 
-        let level = "Low", guide = "ติดตามผู้ป่วยตามปกติ", color = "bg-green-100 text-green-700";
+        let level = "Low", guide = "ติดตามผู้ป่วยตามปกติ, ประเมิน SOS Score ตามปกติ", color = "bg-green-100 text-green-700";
         if (s >= 4) { level = "High"; guide = "รายงานแพทย์ทันที! V/S ทุก 15-30 นาที"; color = "bg-red-500 text-white"; }
-        else if (s >= 1) { level = "Moderate"; guide = "V/S ทุก 4 ชม., รายงาน In-charge"; color = "bg-yellow-400 text-slate-800"; }
+        else if (s >= 1) { level = "Moderate"; guide = "V/S ทุก 4 ชม., รายงาน In-charge เพื่อพิจารณารายงานแพทย์"; color = "bg-yellow-400 text-slate-800"; }
 
         const disp = document.getElementById('scoreDisplay');
         disp.className = `p-5 rounded-3xl text-center transition-all duration-500 ${color} shadow-inner`;
@@ -299,7 +299,7 @@
                 cancelButtonText: 'ไม่ใช่'
             }).then((result) => {
                 formData.isSepsis = result.isConfirmed ? "ใช่" : "ไม่ใช่";
-                formData.sepsisAction = result.isConfirmed ? "ทำตาม Sepsis Flow" : "Monitor ทุก 15-30 นาที";
+                formData.sepsisAction = result.isConfirmed ? "ให้ปฏิบัติตาม Sepsis Flow" : "Monitor ทุก 15-30 นาที จน SOS<4/แพทย์บอกว่า stable then monitor ทุก 1 hr. อีก 4 hr./ SOS<4 then monitor ทุก 4 hr. จนครบ 24 hr.";
                 sendToServer(formData);
             });
         } else {
