@@ -326,44 +326,57 @@ window.addEventListener('load', (event) => {
     return { score: s, level: level, guide: guide };
 }
     // --- แก้ไขส่วนส่งข้อมูล SOS Form (เพื่อให้แมตช์กับ Code.gs) ---
-    document.getElementById('sosForm').onsubmit = function(e) {
-        e.preventDefault();
-        const res = calcScore();
-        const formData = {
-            action: "saveScore", // เพิ่ม action เพื่อความชัดเจน (ถ้า Code.gs รับได้)
-            room: document.getElementById('roomInput').value,
-            name: this.name.value,
-            hn: this.hn.value,
-            temp: this.temp.value,
-            sbp: this.sbp.value,
-            pulse: this.pulse.value,
-            rr: this.rr.value,
-            urine: this.urine.value,
-            con: this.con.options[this.con.selectedIndex].text, // ส่งเป็นชื่อระดับความรู้สึก
-            totalScore: res.score,
-            riskLevel: res.level,
-            guideline: res.guide
-        };
+   document.getElementById('sosForm').onsubmit = function(e) {
+    e.preventDefault();
+    const res = calcScore(); // ดึงค่า Score, Level, Guide ที่ return มาจากฟังก์ชัน
+    
+    // คำนวณช่วงเวรตามเวลาจริง
+    const hour = new Date().getHours();
+    let shift = "";
+    if (hour >= 0 && hour < 8) shift = "เวรดึก (00.01-8.00)";
+    else if (hour >= 8 && hour < 16) shift = "เวรเช้า (8.01-16.00)";
+    else shift = "เวรบ่าย (16.01-00.00)";
 
-        if (res.score >= 4) {
-            Swal.fire({
-                title: '🆘 High Score!',
-                text: 'สาเหตุเกิดจาก Sepsis หรือไม่?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'ใช่ (Sepsis)',
-                cancelButtonText: 'ไม่ใช่'
-            }).then((result) => {
-                formData.isSepsis = result.isConfirmed ? "ใช่" : "ไม่ใช่";
-                formData.sepsisAction = result.isConfirmed ? "ทำตาม Sepsis Flow" : "Monitor ทุก 15-30 นาที";
-                sendToServer(formData);
-            });
-        } else {
-            formData.isSepsis = "-";
-            formData.sepsisAction = res.guide;
-            sendToServer(formData);
-        }
+    const formData = {
+        action: "saveScore",
+        shift: shift, // ส่งช่วงเวรไปด้วย
+        room: document.getElementById('roomInput').value,
+        name: this.name.value,
+        hn: this.hn.value,
+        temp: this.temp.value,
+        sbp: this.sbp.value,
+        pulse: this.pulse.value,
+        rr: this.rr.value,
+        urine: this.urine.value,
+        con: this.con.options[this.con.selectedIndex].text,
+        totalScore: res.score,
+        riskLevel: res.level,
+        guideline: res.guide
     };
+
+    // เงื่อนไขถามเรื่อง Sepsis เมื่อคะแนน >= 4
+    if (res.score >= 4) {
+        Swal.fire({
+            title: '🆘 SOS Score ≥ 4',
+            text: 'สาเหตุเกิดจาก Severe sepsis หรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ไม่ใช่'
+        }).then((result) => {
+            formData.isSepsis = result.isConfirmed ? "ใช่" : "ไม่ใช่";
+            // ถ้าใช่ ให้ทำตาม Flow Sepsis ถ้าไม่ใช่ให้ Monitor ถี่ขึ้น
+            formData.sepsisAction = result.isConfirmed ? 
+                "ให้ปฏิบัติตาม Flow แนวปฏิบัติการดูแลผู้ป่วยติดเชื้อในกระแสเลือด" : 
+                "Monitor ผู้ป่วยทุก 15-30 นาที จน SOS Score < 4";
+            sendToServer(formData);
+        });
+    } else {
+        formData.isSepsis = "-";
+        formData.sepsisAction = res.guide;
+        sendToServer(formData);
+    }
+};
 
     function sendToServer(data) {
         if (!navigator.onLine) {
@@ -373,16 +386,15 @@ window.addEventListener('load', (event) => {
             Swal.fire('Offline', 'บันทึกลงเครื่องแล้ว จะซิงค์เมื่อมีเน็ต', 'info');
             return;
         }
-        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-        fetch(gasUrl, { method: "POST", body: JSON.stringify(data) })
-            .then(() => {
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500 });
-                document.getElementById('sosForm').reset();
-                calcScore();
-            })
-            .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกได้', 'error'));
-    }
-
+    Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+    fetch(gasUrl, { method: "POST", body: JSON.stringify(data) })
+        .then(() => {
+            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500 });
+            document.getElementById('sosForm').reset(); // ล้างข้อมูลในฟอร์ม
+            calcScore(); // สั่งคำนวณใหม่เพื่อให้ Total Score กลับเป็น 0 และสีหน้าจอเป็นสีเขียว
+        })
+        .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกได้', 'error'));
+}
     // --- 5. HISTORY ---
     function searchData() {
         const hn = document.getElementById('hnInput').value;
