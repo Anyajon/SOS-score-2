@@ -1,7 +1,7 @@
 {
   "short_name": "SOS Score",
   "name": "SOS Score Assessment System",
-  "description": "แบบประเมินสภาพผู้ป่วยที่มีอาการทรุดลง Ward 14",
+  "description": "แบบประเมินสภาพผู้ป่วยที่มีอาการทรุดลงโดยใช้ SOS Score",
   "icons": [
     {
       "src": "icon.png",
