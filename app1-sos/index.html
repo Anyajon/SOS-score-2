@@ -26,8 +26,8 @@
         
         <!-- HEADER -->
         <div class="text-center mb-6">
-            <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">รู้เร็ว รู้ไว ด้วย SOS Score</h1>
-            <p class="text-lg text-slate-600 mt-1">แบบประเมินสภาพผู้ป่วยที่มีอาการทรุดลงโดยใช้ SOS Score</p>
+            <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Smart SOS Alert</h1>
+            <p class="text-lg text-slate-600 mt-1">แบบประเมินผู้ป่วยที่มีอาการทรุดลงโดยใช้ SOS Score</p>
             
             <div class="inline-flex items-center bg-white border border-pink-100 rounded-full py-2 px-6 mt-4 shadow-sm">
                 <i class="far fa-clock text-pink-500 mr-2"></i>
@@ -370,7 +370,46 @@
             })
             .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกไปยังฐานข้อมูลได้', 'error'));
     }
+    function renderGuidelines(score) {
+    document.getElementById('finalScore').innerText = score;
+    const circle = document.getElementById('resultCircle');
+    const text = document.getElementById('finalRiskText');
+    const list = document.getElementById('guidelinesList');
 
+    let steps = [];
+    if (score >= 4) {
+        circle.className = "w-24 h-24 mx-auto rounded-full flex flex-col items-center justify-center font-black text-2xl shadow-inner bg-red-500 text-white";
+        text.innerText = "ความเสี่ยงสูง (High Risk)";
+        text.className = "font-bold text-sm text-red-600";
+        steps = [
+            "1. รายงานแพทย์ประจำวอร์ด/แพทย์ผู้ดูแลทันที",
+            "2. ติดตามสัญญาณชีพอย่างใกล้ชิดทุก 15-30 นาที",
+            "3. ประเมินอาการตาม Sepsis Guideline หากสงสัยการติดเชื้อ",
+            "4. เตรียมอุปกรณ์ช่วยเหลือฉุกเฉินข้างเตียง",
+            "5. บันทึกปริมาณน้ำเข้า-ออก (I/O) อย่างเคร่งครัด"
+        ];
+    } else if (score >= 1) {
+        circle.className = "w-24 h-24 mx-auto rounded-full flex flex-col items-center justify-center font-black text-2xl shadow-inner bg-amber-400 text-slate-800";
+        text.innerText = "ความเสี่ยงปานกลาง (Moderate Risk)";
+        text.className = "font-bold text-sm text-amber-600";
+        steps = [
+            "1. รายงานพยาบาล In-charge เพื่อประเมินซ้ำ",
+            "2. ติดตามและบันทึกสัญญาณชีพทุก 4 ชั่วโมง",
+            "3. ทบทวนแผนการรักษาและการให้ยาของผู้ป่วย",
+            "4. ประเมินอาการเปลี่ยนแปลงทางคลินิกอย่างใกล้ชิด"
+        ];
+      } else {
+        circle.className = "w-24 h-24 mx-auto rounded-full flex flex-col items-center justify-center font-black text-2xl shadow-inner bg-emerald-100 text-emerald-600";
+        text.innerText = "ไม่เสี่ยง / ความเสี่ยงต่ำ (Low Risk)";
+        text.className = "font-bold text-sm text-emerald-600";
+        steps = [
+            "1. ประเมินและบันทึกสัญญาณชีพตามเวรปกติ (ทุก 8 ชั่วโมง)",
+            "2. ให้การดูแลตามแผนการรักษามาตรฐาน"
+        ];
+        }
+
+    list.innerHTML = steps.map(s => `<div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-700">${s}</div>`).join('');
+    }
     // --- 5. HISTORY & UTILS ---
     function searchData() {
         const hn = document.getElementById('hnInput').value;
