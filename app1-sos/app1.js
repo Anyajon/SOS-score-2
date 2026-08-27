@@ -186,3 +186,38 @@ function searchHistory() {
         document.getElementById('historyBody').innerHTML = h || 'ไม่พบประวัติ';
     });
 }
+function checkOfflineData() {
+        const queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
+        if (queue.length > 0 && navigator.onLine) {
+            Swal.fire({
+                title: 'พบข้อมูลค้างส่ง!',
+                text: `คุณมีข้อมูล ${queue.length} รายการที่บันทึกช่วงออฟไลน์ ต้องการซิงค์ขึ้นระบบเลยไหม?`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'ส่งข้อมูล',
+                cancelButtonText: 'ไว้ทีหลัง'
+            }).then(res => { if(res.isConfirmed) syncOffline(queue); });
+        }
+}
+    function syncOffline(queue) {
+        if (queue.length === 0) { 
+            localStorage.removeItem('sos_offline_queue'); 
+            return Swal.fire('สำเร็จ', 'ซิงค์ข้อมูลออฟไลน์ทั้งหมดแล้ว', 'success'); 
+        }
+        const item = queue.shift();
+        fetch(gasUrl, { method: "POST", body: JSON.stringify(item) })
+            .then(() => syncOffline(queue))
+            .catch(() => Swal.fire('ผิดพลาด', 'การซิงค์หยุดชะงัก โปรดลองใหม่อีกครั้ง', 'error'));
+    }
+
+    function resetForm() {
+        document.getElementById('sosForm').reset();
+        calcScore();
+    }
+
+    function showAdmitForm() { 
+        document.getElementById('nameInput').focus(); 
+    }
+    </script>
+</body>
+</html>
