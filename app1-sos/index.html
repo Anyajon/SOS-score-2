@@ -175,6 +175,7 @@
     <script>
     // --- 1. CONFIG & SYSTEM ---
     const gasUrl = "https://script.google.com/macros/s/AKfycbw8DZGydDsXnEvuIu7FAXarO2qsCxbAOCaPh5bUBNRfznbYU9i9JakzzuxwKz5kp_daXg/exec";
+    const targetSpreadsheetId = "1Ic4a24ElFYxIh4DjOV3G0OUy23gAwx3eeUi9WMcDow8";
 
     function updateClock() {
         const now = new Date();
@@ -192,7 +193,7 @@
 
         Swal.fire({ title: 'กำลังดึงข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-        fetch(`${gasUrl}?action=getPatient&room=${encodeURIComponent(room)}`)
+        fetch(`${gasUrl}?action=getPatient&room=${encodeURIComponent(room)}&sheetId=${targetSpreadsheetId}`)
             .then(res => res.json())
             .then(patient => {
                 Swal.close();
@@ -232,9 +233,12 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-                fetch(gasUrl, { method: "POST", body: JSON.stringify({ action: "discharge", hn: hn }) })
-                    .then(() => Swal.fire('จำหน่ายแล้ว', '', 'success').then(() => location.reload()))
-                    .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'));
+                fetch(gasUrl, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "discharge", hn: hn, sheetId: targetSpreadsheetId }) 
+                })
+                .then(() => Swal.fire('จำหน่ายแล้ว', '', 'success').then(() => location.reload()))
+                .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'));
             }
         });
     }
@@ -314,6 +318,7 @@
         e.preventDefault();
         const res = calcScore();
         const formData = {
+            sheetId: targetSpreadsheetId,
             room: document.getElementById('roomInput').value,
             name: this.name.value,
             hn: this.hn.value,
@@ -372,7 +377,7 @@
         if (!hn) return Swal.fire('โปรดระบุ HN ในช่องกรอกข้อมูล');
         
         Swal.fire({ title: 'กำลังค้นหาประวัติ...', didOpen: () => Swal.showLoading() });
-        fetch(`${gasUrl}?hn=${encodeURIComponent(hn)}`)
+        fetch(`${gasUrl}?hn=${encodeURIComponent(hn)}&sheetId=${targetSpreadsheetId}`)
             .then(res => res.json())
             .then(data => {
                 Swal.close();
