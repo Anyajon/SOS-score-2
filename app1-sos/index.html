@@ -132,7 +132,6 @@
                 <div id="guidelineText" class="text-lg text-center px-4 py-3 bg-white border border-gray-100 rounded-2xl italic text-slate-500">
                     กรุณากรอกข้อมูลสัญญาณชีพ
                 </div>
-
                 <!-- BUTTONS -->
                 <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl transition shadow-lg active:scale-95 text-lg">
                     <i class="fas fa-save mr-2"></i> บันทึกข้อมูล
@@ -148,7 +147,7 @@
                 </div>
             </form>
         </div>
-
+     
         <!-- HISTORY SECTION -->
         <div id="historySection" class="hidden mb-10 p-4 bg-white rounded-3xl shadow-lg border border-pink-50 overflow-hidden">
             <h3 class="font-bold text-lg mb-4 text-pink-600 px-2">ประวัติ 10 ครั้งล่าสุด (HN: <span id="searchHn"></span>)</h3>
@@ -170,13 +169,73 @@
             TropMed, Ward 14
         </footer>
     </div>
+    <!-- STEP 1.3: SUMMARY & HISTORY -->
+<div id="step-3" class="step-card bg-white rounded-3xl shadow-lg p-6 border border-pink-50 space-y-4">
+    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+        <h2 class="font-bold text-lg text-pink-600"><i class="fas fa-clipboard-check mr-2"></i>Step 1.3: สรุปผล & บันทึก</h2>
+        <span class="text-xs font-bold text-gray-400">3 / 3</span>
+    </div>
 
+    <!-- SCORE DISPLAY CONTAINER -->
+    <div class="text-center py-2 space-y-2">
+        <div id="resultCircle" class="w-24 h-24 mx-auto rounded-full flex flex-col items-center justify-center font-black text-2xl shadow-inner bg-emerald-100 text-emerald-600 transition-all duration-300">
+            <span id="finalScore" class="text-4xl">0</span>
+            <span class="text-[10px] font-normal uppercase">Score</span>
+        </div>
+        <div id="finalRiskText" class="font-bold text-sm text-emerald-600">ไม่เสี่ยง / ความเสี่ยงต่ำ (Low Risk)</div>
+    </div>
+
+    <!-- DYNAMIC GUIDELINES LIST -->
+    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+        <h3 class="text-xs font-bold text-slate-700 mb-2 flex items-center">
+            <i class="fas fa-user-md text-pink-500 mr-2"></i>แนวทางการดูแลรักษาผู้ป่วย:
+        </h3>
+        <ul id="guidelinesList" class="space-y-1.5 text-xs text-slate-600 font-medium pl-1">
+            <!-- Items generated via JavaScript -->
+        </ul>
+    </div>
+
+    <button type="submit" class="w-full bg-pink-500 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition">
+        <i class="fas fa-save mr-1"></i> ยืนยันและบันทึกข้อมูล
+    </button>
+
+    <!-- HISTORY SEARCH SECTION -->
+    <div class="pt-2 border-t border-gray-100">
+        <button type="button" onclick="searchData()" class="w-full bg-white border border-slate-200 text-slate-600 py-2 rounded-xl font-bold text-xs mb-3">
+            <i class="fas fa-history mr-1"></i> ดึงประวัติ 10 ครั้งล่าสุด
+        </button>
+        <div id="historySection" class="hidden overflow-x-auto rounded-xl border border-pink-50">
+            <table class="w-full text-xs text-left">
+                <thead class="bg-pink-50 text-pink-700">
+                    <tr>
+                        <th class="p-2">วัน/เวลา</th>
+                        <th class="p-2 text-center">Score</th>
+                        <th class="p-2">เกณฑ์</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody" class="divide-y divide-gray-100"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex gap-2">
+        <button type="button" onclick="goToStep(2)" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2 rounded-xl text-xs">แก้ไข สัญญาณชีพ</button>
+        <button type="button" onclick="resetForm()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-2 rounded-xl text-xs">เริ่มประเมินใหม่</button>
+    </div>
+</div>
     <!-- JAVASCRIPT LOGIC -->
     <script>
     // --- 1. CONFIG & SYSTEM ---
     const gasUrl = "https://script.google.com/macros/s/AKfycbw8DZGydDsXnEvuIu7FAXarO2qsCxbAOCaPh5bUBNRfznbYU9i9JakzzuxwKz5kp_daXg/exec";
     const targetSpreadsheetId = "1Ic4a24ElFYxIh4DjOV3G0OUy23gAwx3eeUi9WMcDow8";
-
+    
+    function switchStep(stepId) {
+    ['step-1', 'step-2', 'step-3'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+                                           });
+    document.getElementById(stepId).classList.remove('hidden');
+    window.scrollTo(0, 0);
+    }
     function updateClock() {
         const now = new Date();
         document.getElementById('clock').innerText = now.toLocaleString('th-TH', { 
@@ -242,7 +301,15 @@
             }
         });
     }
+    function goToStep2() {
+    const name = document.getElementById('nameInput').value;
+    const hn = document.getElementById('hnInput').value;
+    if (!name || !hn) return Swal.fire('ระบุชื่อและ HN ให้ครบถ้วน');
 
+    document.getElementById('summaryPatientName').innerText = `ผู้ป่วย: ${name}`;
+    document.getElementById('summaryPatientHN').innerText = `HN: ${hn}`;
+    switchStep('step-2');
+    }
     // --- 3. SOS SCORE CALCULATION ---
     function calcScore() {
         const f = document.getElementById('sosForm');
@@ -312,7 +379,6 @@
         
         return { score: s, level: level, guide: guide };
     }
-
     // --- 4. SUBMIT DATA & OFFLINE ---
     document.getElementById('sosForm').onsubmit = function(e) {
         e.preventDefault();
@@ -352,7 +418,6 @@
             sendToServer(formData);
         }
     };
-
     function sendToServer(data) {
         if (!navigator.onLine) {
             let queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
@@ -398,7 +463,7 @@
             "3. ทบทวนแผนการรักษาและการให้ยาของผู้ป่วย",
             "4. ประเมินอาการเปลี่ยนแปลงทางคลินิกอย่างใกล้ชิด"
         ];
-      } else {
+       } else {
         circle.className = "w-24 h-24 mx-auto rounded-full flex flex-col items-center justify-center font-black text-2xl shadow-inner bg-emerald-100 text-emerald-600";
         text.innerText = "ไม่เสี่ยง / ความเสี่ยงต่ำ (Low Risk)";
         text.className = "font-bold text-sm text-emerald-600";
@@ -406,8 +471,15 @@
             "1. ประเมินและบันทึกสัญญาณชีพตามเวรปกติ (ทุก 8 ชั่วโมง)",
             "2. ให้การดูแลตามแผนการรักษามาตรฐาน"
         ];
-        }
-
+         }
+        // สร้างกล่องสี่เหลี่ยมลำดับ 1, 2, 3... ตามภาพ Wireframe
+    container.innerHTML = steps.map((item, index) => `
+        <div class="flex items-start gap-3 p-3 border-2 border-slate-300 rounded-2xl bg-white shadow-sm">
+            <span class="font-black text-slate-700 text-sm min-w-[18px]">${index + 1}</span>
+            <span class="text-xs font-semibold text-slate-600 leading-snug">${item}</span>
+        </div>
+    `).join('');
+    }
     list.innerHTML = steps.map(s => `<div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-700">${s}</div>`).join('');
     }
     // --- 5. HISTORY & UTILS ---
