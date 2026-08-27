@@ -106,23 +106,23 @@
                             <input type="number" name="rr" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="0">
                         </div>
                         <!-- URINE SECTION (App 1.1) -->
-                        <div class="border-2 border-slate-300 rounded-2xl p-3 bg-white space-y-2">
-                            <label class="block text-xs font-bold text-slate-600">🚽 Urine (ปริมาณปัสสาวะ)</label>
+                        <div class="border-2 border-slate-300 rounded-2x4 p-3 bg-white space-y-2">
+                            <label class="block text-lg font-bold text-slate-500 uppercase">🚽 Urine (ปริมาณปัสสาวะ)</label>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="block text-[10px] text-slate-400 font-bold mb-1">ระยะเวลา (ชั่วโมง)</label>
+                                    <label class="block text-lg text-slate-500 font-bold mr-2">ระยะเวลา (ชั่วโมง)</label>
                                     <!-- เปลี่ยนเป็น input number รับค่าได้ทุกตัวเลข -->
                                     <input type="number" step="0.5" min="0.1" name="urineHours" id="urineHours" value="8" oninput="calcScore()" 
                    class="w-full text-base font-bold outline-none bg-slate-50 border border-slate-200 rounded-lg p-1.5" placeholder="8">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] text-slate-400 font-bold mb-1">ปริมาณรวม (ml)</label>
+                                    <label class="block text-lg text-slate-500 font-bold mr-2">ปริมาณรวม (ml)</label>
                                     <input type="number" name="urine" id="urineInput" oninput="calcScore()" 
                    class="w-full text-base font-bold outline-none bg-slate-50 border border-slate-200 rounded-lg p-1.5" placeholder="0">
                                 </div>
                             </div>
                             <!-- แสดงค่าคำนวณเฉลี่ยเทียบ 8 ชม. ให้พยาบาลเห็น -->
-                            <p id="urineCalculatedText" class="text-[11px] font-bold text-slate-400 text-right hidden">
+                            <p id="urineCalculatedText" class="text-lg font-bold text-slate-500 text-right hidden">
                                 เฉลี่ยเทียบเท่า 8 ชม.: <span id="urine8hrVal" class="text-pink-600">0</span> ml
                             </p>
                         </div>
