@@ -11,37 +11,66 @@ function switchStep(stepId) {
 
 // 2. ฟังก์ชันแสดงนาฬิกา real-time
 function updateClock() {
-    const clockEl = document.getElementById('clock');
-    if (clockEl) {
         const now = new Date();
-        clockEl.innerText = now.toLocaleString('th-TH', { 
-            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+        document.getElementById('clock').innerText = now.toLocaleString('th-TH', { 
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' 
         });
     }
-}
-setInterval(updateClock, 1000);
-updateClock();
+    setInterval(updateClock, 1000);
+    window.onload = () => { updateClock(); checkOfflineData(); };
 
 // 3. ค้นหาข้อมูลผู้ป่วยจากเลขเตียง
 function searchByRoom() {
-    const room = document.getElementById('roomInput').value;
-    if (!room) return Swal.fire('โปรดระบุเลขห้อง');
-    
-    Swal.fire({ title: 'กำลังดึงข้อมูล...', didOpen: () => Swal.showLoading() });
-    
-    fetch(`${gasUrl}?action=getPatient&room=${room}`)
-        .then(res => res.json())
-        .then(p => {
-            Swal.close();
-            if (p && p.hn) {
-                document.getElementById('nameInput').value = p.name;
-                document.getElementById('hnInput').value = p.hn;
-            } else {
-                Swal.fire('เตียงว่าง', 'ไม่มีข้อมูลผู้ป่วยในเตียงนี้', 'info');
-            }
-        }).catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถดึงข้อมูลได้', 'error'));
-}
+        const room = document.getElementById('roomInput').value.trim();
+        if (!room) return Swal.fire('ระบุเลขห้อง', 'กรุณากรอกเลขห้องก่อนค้นหา', 'warning');
 
+        Swal.fire({ title: 'กำลังดึงข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        fetch(`${gasUrl}?action=getPatient&room=${encodeURIComponent(room)}`)
+            .then(res => res.json())
+            .then(patient => {
+                Swal.close();
+                if (patient && patient.hn) {
+                    document.getElementById('patientInfo').classList.remove('hidden');
+                    document.getElementById('emptyRoom').classList.add('hidden');
+                    
+                    document.getElementById('displayRoom').innerText = patient.room || room;
+                    document.getElementById('displayName').innerText = patient.name || '-';
+                    document.getElementById('displayHN').innerText = patient.hn || '-';
+                    
+                    document.getElementById('nameInput').value = patient.name || '';
+                    document.getElementById('hnInput').value = patient.hn || '';
+                    
+                    Swal.fire({ icon: 'success', title: 'พบข้อมูลคนไข้', timer: 1000, showConfirmButton: false });
+                } else {
+                    document.getElementById('patientInfo').classList.add('hidden');
+                    document.getElementById('emptyRoom').classList.remove('hidden');
+                    Swal.fire('เตียงว่าง', 'ไม่มีคนไข้ในระบบ BedRegistry', 'info');
+                }
+            })
+            .catch(() => Swal.fire('ผิดพลาด', 'เชื่อมต่อ Server ไม่ได้', 'error'));
+    }
+    function handleDischarge() {
+        const hn = document.getElementById('displayHN').innerText;
+        if (!hn || hn === '-') return;
+
+        Swal.fire({
+            title: 'จำหน่ายคนไข้?',
+            text: `ยืนยันการ Discharge HN: ${hn}`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+                fetch(gasUrl, { method: "POST", body: JSON.stringify({ action: "discharge", hn: hn }) })
+                    .then(() => Swal.fire('จำหน่ายแล้ว', '', 'success').then(() => location.reload()))
+                    .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'));
+            }
+        });
+    }
 // 4. ตรวจสอบข้อมูลก่อนไป Step 2
 function goToStep2() {
     const name = document.getElementById('nameInput').value;
@@ -98,9 +127,24 @@ function calcScore() {
 
     // Conscious
     s += parseInt(document.getElementById('con').value);
+    document.getElementById('totalScore').innerText = s;
 
-    currentScore = s;
-    document.getElementById('totalScoreDisplay').innerText = s;
+        // Risk Level & Guidelines Criteria
+        let level = "Low", color = "bg-green-100 text-green-700";
+        if (s >= 4) { 
+            level = "High";
+            color = "bg-red-500 text-white"; 
+        } else if (s >= 1) { 
+            level = "Moderate"; 
+            color = "bg-yellow-400 text-slate-800"; 
+        }
+        const disp = document.getElementById('scoreDisplay');
+        disp.className = `p-5 rounded-3xl text-center transition-all duration-500 ${color} shadow-inner`;
+        document.getElementById('riskLevel').innerText = level;
+        document.getElementById('guidelineText').innerText = guide;
+        
+        return { score: s, level: level };
+    }
 }
 
 // 6. บันทึกข้อมูลลง Google Sheets แล้วแสดงหน้าแนวทางดูแล (Step 3)
@@ -117,18 +161,23 @@ function saveAndGoToStep3() {
         urine: document.getElementById('urine').value,
         totalScore: currentScore
     };
+    function sendToServer(data) {
+        if (!navigator.onLine) {
+            let queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
+            queue.push(data);
+            localStorage.setItem('sos_offline_queue', JSON.stringify(queue));
+            Swal.fire('Offline Mode', 'บันทึกลงเครื่องแล้ว ระบบจะซิงค์อัตโนมัติเมื่อเชื่อมต่ออินเทอร์เน็ต', 'info');
+            return;
+        }
 
-    Swal.fire({ title: 'กำลังบันทึกข้อมูล...', didOpen: () => Swal.showLoading() });
-
-    fetch(gasUrl, { method: "POST", body: JSON.stringify(payload) })
-        .then(() => {
-            Swal.close();
-            renderGuidelines(currentScore);
-            switchStep('step-3');
-        })
-        .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error'));
-}
-
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+        fetch(gasUrl, { method: "POST", body: JSON.stringify(data) })
+            .then(() => {
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500, showConfirmButton: false });
+                resetForm();
+            })
+            .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกไปยังฐานข้อมูลได้', 'error'));
+    }
 // 7. แสดงข้อความแนวทางการปฏิบัติงานตามคะแนน SOS
 function renderGuidelines(score) {
     document.getElementById('finalScore').innerText = score;
