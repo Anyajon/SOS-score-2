@@ -3,169 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App 1 : SOS Score - TropMed Ward 14</title>
+    <title>SOS Score Mobile - TropMed</title>
+    <base target="_top">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ec4899">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; touch-action: manipulation; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #fff1f3; touch-action: manipulation; }
+        .input-focus:focus { outline: none; border-color: #ec4899; ring: 2px; ring-color: #fbcfe8; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="min-h-screen pb-10">
+<body class="min-h-screen">
 
-    <!-- ==========================================
-         STEP 1 (App I) : หน้าค้นหาและระบุตัวผู้ป่วย
-    =========================================== -->
-    <div id="step-1" class="max-w-md mx-auto px-4 py-6">
-        <div class="flex items-center justify-between mb-4">
-            <!-- ปุ่มย้อนกลับไปหน้า Portal หลัก -->
-            <a href="../index.html" class="text-slate-600 font-bold text-sm flex items-center">
-                <i class="fas fa-chevron-left mr-1"></i> หน้าหลัก
-            </a>
-            <span class="text-xs font-bold text-slate-400">App 1 : SOS Score</span>
-        </div>
-
+    <div class="max-w-md mx-auto px-4 py-6 md:max-w-4xl">
+        
+        <!-- HEADER -->
         <div class="text-center mb-6">
-            <h2 class="text-xl font-bold text-slate-800">รู้เร็ว รู้ไว ด้วย SOS Score</h2>
-            <p id="clock" class="text-xs font-bold text-pink-500 mt-1"></p>
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-sm p-5 border border-slate-100 space-y-4">
-            <h3 class="font-bold text-sm text-slate-700">ค้นหาจากเลขเตียง</h3>
-            <div class="flex gap-2">
-                <input type="text" id="roomInput" inputmode="numeric" placeholder="ระบุเลขห้อง" class="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none">
-                <button onclick="searchByRoom()" class="bg-blue-600 text-white px-4 rounded-2xl font-bold active:scale-95"><i class="fas fa-search"></i></button>
-            </div>
-
-            <div class="pt-2">
-                <label class="block text-xs font-bold text-slate-500 mb-1">ชื่อ-นามสกุล</label>
-                <input type="text" id="nameInput" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-500 mb-1">HN</label>
-                <input type="text" id="hnInput" inputmode="numeric" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none">
-            </div>
-
-            <div class="flex gap-2 pt-4">
-                <button onclick="searchHistory()" class="flex-1 bg-slate-100 text-slate-700 py-3 rounded-2xl font-bold text-sm active:scale-95">ดูประวัติ</button>
-                <button onclick="goToStep2()" class="flex-1 bg-pink-500 text-white py-3 rounded-2xl font-bold text-sm shadow-md active:scale-95">ถัดไป <i class="fas fa-arrow-right ml-1"></i></button>
-            </div>
-        </div>
-
-        <!-- กล่องประวัติการประเมิน -->
-        <div id="historySection" class="hidden mt-4 p-4 bg-white rounded-3xl border border-slate-100">
-            <h4 class="font-bold text-sm text-slate-700 mb-2">ประวัติการประเมิน</h4>
-            <div id="historyBody" class="text-xs space-y-2"></div>
-        </div>
-    </div>
-
-
-    <!-- ==========================================
-         STEP 2 (App I.I) : หน้ากรอกสัญญาณชีพ
-    =========================================== -->
-    <div id="step-2" class="max-w-md mx-auto px-4 py-6 hidden">
-        <div class="flex items-center justify-between mb-4">
-            <button onclick="switchStep('step-1')" class="text-slate-600 font-bold text-sm flex items-center">
-                <i class="fas fa-chevron-left mr-1"></i> ย้อนกลับ
-            </button>
-            <span class="text-xs font-bold text-slate-400">App I.I : สัญญาณชีพ</span>
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-sm p-5 border border-slate-100 space-y-4">
-            <div class="bg-pink-50 p-3 rounded-2xl text-xs font-bold text-pink-700 flex justify-between">
-                <span id="summaryPatientName">ผู้ป่วย: -</span>
-                <span id="summaryPatientHN">HN: -</span>
-            </div>
-
-            <h3 class="font-bold text-sm text-slate-800"><i class="fas fa-heartbeat text-pink-500 mr-1"></i> สัญญาณชีพ</h3>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-slate-50 p-3 rounded-2xl">
-                    <label class="block text-[11px] font-bold text-slate-500">Temp (°C)</label>
-                    <input type="number" step="0.1" id="temp" inputmode="decimal" oninput="calcScore()" class="w-full bg-transparent font-bold text-lg outline-none" placeholder="0.0">
-                </div>
-                <div class="bg-slate-50 p-3 rounded-2xl">
-                    <label class="block text-[11px] font-bold text-slate-500">SBP (mmHg)</label>
-                    <input type="number" id="sbp" inputmode="numeric" oninput="calcScore()" class="w-full bg-transparent font-bold text-lg outline-none" placeholder="0">
-                </div>
-                <div class="bg-slate-50 p-3 rounded-2xl">
-                    <label class="block text-[11px] font-bold text-slate-500">Pulse (/min)</label>
-                    <input type="number" id="pulse" inputmode="numeric" oninput="calcScore()" class="w-full bg-transparent font-bold text-lg outline-none" placeholder="0">
-                </div>
-                <div class="bg-slate-50 p-3 rounded-2xl">
-                    <label class="block text-[11px] font-bold text-slate-500">RR (/min)</label>
-                    <input type="number" id="rr" inputmode="numeric" oninput="calcScore()" class="w-full bg-transparent font-bold text-lg outline-none" placeholder="0">
-                </div>
-            </div>
-
-            <div class="bg-slate-50 p-3 rounded-2xl">
-                <label class="block text-[11px] font-bold text-slate-500 mb-1">Conscious (ความรู้สึกตัว)</label>
-                <select id="con" onchange="calcScore()" class="w-full bg-transparent font-bold text-sm outline-none">
-                    <option value="0">ตื่นดี (Alert)</option>
-                    <option value="1">สับสน (Confusion)</option>
-                    <option value="1">ซึม (Voice response)</option>
-                    <option value="2">ซึมมาก (Pain response)</option>
-                    <option value="3">ไม่รู้สึกตัว (Unresponsive)</option>
-                </select>
-            </div>
-
-            <div class="bg-slate-50 p-3 rounded-2xl">
-                <label class="block text-[11px] font-bold text-slate-500">Urine in 8 hr. (ml)</label>
-                <input type="number" id="urine" inputmode="numeric" oninput="calcScore()" class="w-full bg-transparent font-bold text-lg outline-none" placeholder="0">
-            </div>
-
-            <!-- Total Score Box -->
-            <div id="scoreBox" class="p-4 rounded-2xl text-center bg-slate-100 transition-all">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Score</span>
-                <div class="text-3xl font-black my-1" id="totalScoreDisplay">0</div>
-            </div>
-
-            <button onclick="saveAndGoToStep3()" class="w-full bg-pink-500 text-white py-4 rounded-2xl font-bold text-sm shadow-md active:scale-95">
-                บันทึกและแนวทางดูแล <i class="fas fa-arrow-right ml-1"></i>
-            </button>
-        </div>
-    </div>
-
-
-    <!-- ==========================================
-         STEP 3 (App I.II) : หน้าแสดงผลและแนวทางปฏิบัติ
-    =========================================== -->
-    <div id="step-3" class="max-w-md mx-auto px-4 py-6 hidden">
-        <div class="flex items-center justify-between mb-4">
-            <button onclick="switchStep('step-2')" class="text-slate-600 font-bold text-sm flex items-center">
-                <i class="fas fa-chevron-left mr-1"></i> แก้ไขข้อมูล
-            </button>
-            <span class="text-xs font-bold text-slate-400">App I.II : แนวทางดูแล</span>
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-sm p-6 border border-slate-100 space-y-6 text-center">
+            <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">รู้เร็ว รู้ไว ด้วย SOS Score</h1>
+            <p class="text-lg text-slate-600 mt-1">แบบประเมินสภาพผู้ป่วยที่มีอาการทรุดลงโดยใช้ SOS Score</p>
             
-            <div class="space-y-2">
-                <h3 class="text-lg font-bold text-slate-800">SOS Score</h3>
-                <div id="resultCircle" class="w-24 h-24 mx-auto rounded-full flex flex-col items-center justify-center font-black text-2xl shadow-inner bg-emerald-100 text-emerald-600">
-                    <span id="finalScore">0</span>
-                </div>
-                <p id="finalRiskText" class="font-bold text-sm text-emerald-600">ไม่เสี่ยง / ความเสี่ยงต่ำ</p>
+            <div class="inline-flex items-center bg-white border border-pink-100 rounded-full py-2 px-6 mt-4 shadow-sm">
+                <i class="far fa-clock text-pink-500 mr-2"></i>
+                <span id="clock" class="text-sm font-bold text-pink-600"></span>
             </div>
-
-            <hr class="border-slate-100">
-
-            <div class="text-left space-y-3">
-                <h4 class="font-bold text-sm text-slate-800">แนวทางการดำเนินการ</h4>
-                <div id="guidelinesList" class="space-y-2 text-xs">
-                    <!-- ข้อปฏิบัติต่างๆ จะถูกเพิ่มด้วย JavaScript -->
-                </div>
-            </div>
-
-            <!-- ปุ่มเสร็จสิ้น กดแล้วพาข้ามกลับไปยังหน้า Portal หลักทันที -->
-            <a href="../index.html" class="block w-full bg-slate-800 text-white py-3.5 rounded-2xl font-bold text-sm text-center active:scale-95">
-                เสร็จสิ้น / กลับหน้าหลัก
-            </a>
         </div>
-    </div>
 
+        <!-- SEARCH / BED REGISTRY -->
+        <div class="bg-white rounded-3xl shadow-md p-4 mb-6 border border-pink-50">
+            <label class="block text-lg font-bold text-slate-700 mb-2 px-2">ค้นหาจากเลขห้อง/เตียง</label>
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                    <input type="text" id="roomInput" placeholder="ระบุเลขห้อง" 
+                           class="w-full p-3 pl-10 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-300 outline-none">
+                    <i class="fas fa-bed absolute left-4 top-4 text-pink-300"></i>
+                </div>
+                <button onclick="searchByRoom()" class="bg-blue-500 text-white px-5 rounded-2xl active:scale-95 transition shadow-sm">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- PATIENT INFO DISPLAY -->
+            <div id="patientInfo" class="hidden mt-4 p-4 border border-blue-100 rounded-2xl bg-blue-50/50">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p id="displayName" class="font-bold text-blue-900">-</p>
+                        <p class="text-base text-blue-600">HN: <span id="displayHN">-</span> | ห้อง: <span id="displayRoom">-</span></p>
+                    </div>
+                    <button onclick="handleDischarge()" class="text-base bg-red-100 text-red-600 px-3 py-1 rounded-lg font-bold hover:bg-red-200 transition">จำหน่าย</button>
+                </div>
+            </div>
+
+            <!-- EMPTY ROOM NOTICE -->
+            <div id="emptyRoom" class="hidden mt-4 p-4 border-2 border-dashed border-gray-200 rounded-2xl text-center">
+                <p class="text-base text-gray-500">ว่างอยู่? <span onclick="showAdmitForm()" class="text-blue-500 font-bold cursor-pointer underline">Admit คนใหม่</span></p>
+            </div>
+        </div>
+
+        <!-- MAIN FORM -->
+        <div class="bg-white rounded-[2.5rem] shadow-xl p-6 md:p-10 border border-pink-50 mb-10">
+            <form id="sosForm" class="space-y-6">
+                <!-- PERSONAL INFO -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-lg font-bold text-slate-700 mb-1">ชื่อ-นามสกุล</label>
+                        <input type="text" name="name" id="nameInput" required 
+                               class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-pink-200 transition">
+                    </div>
+                    <div>
+                        <label class="block text-lg font-bold text-slate-700 mb-1">เลข HN</label>
+                        <input type="text" name="hn" id="hnInput" required 
+                               class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-pink-200 transition">
+                    </div>
+                </div>
+
+                <!-- VITAL SIGNS INPUTS -->
+                <div class="pt-4 border-t border-gray-50">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                        <i class="fas fa-heartbeat mr-2 text-pink-500"></i> สัญญาณชีพ
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 p-3 rounded-2xl">
+                            <label class="block text-lg font-bold text-slate-500 uppercase">🌡️ Temp (°C)</label>
+                            <input type="number" step="0.1" name="temp" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="0.0">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl">
+                            <label class="block text-lg font-bold text-slate-500 uppercase">🩸 SBP (mmHg)</label>
+                            <input type="number" name="sbp" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="0">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl">
+                            <label class="block text-lg font-bold text-slate-500 uppercase">💓 Pulse (bpm)</label>
+                            <input type="number" name="pulse" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="0">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl">
+                            <label class="block text-lg font-bold text-slate-500 uppercase">🫁 RR (/min)</label>
+                            <input type="number" name="rr" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="0">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl col-span-2">
+                            <label class="block text-lg font-bold text-slate-500 uppercase">🚽 Urine in 8 hr. (ml)</label>
+                            <input type="number" name="urine" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="ระบุจำนวน">
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl col-span-2">
+                            <label class="block text-lg font-bold text-slate-500 uppercase">ความรู้สึกตัว</label>
+                            <select name="con" onchange="calcScore()" class="w-full bg-transparent font-bold outline-none text-sm">
+                                <option value="0">😊 ตื่นดี (รู้ตัว รู้เรื่อง)</option>
+                                <option value="1">😕 สับสน (เพิ่งเกิด)</option>
+                                <option value="1">😴 ซึม (เรียกแล้วลืมตาสะลึมสะลือ)</option>
+                                <option value="2">😫 ซึมมาก (ต้องกระตุ้นจึงจะลืมตา)</option>
+                                <option value="3">🌑 ไม่รู้สึกตัว (แม้กระตุ้นแล้ว)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCORE DISPLAY -->
+                <div id="scoreDisplay" class="p-5 rounded-3xl text-center bg-gray-100 transition-all duration-500">
+                    <p class="text-xl font-bold uppercase tracking-widest mb-1">Total Score</p>
+                    <div class="text-4xl font-black"><span id="totalScore">0</span></div>
+                    <p class="text-xl mt-1">เกณฑ์ความเสี่ยง: <span id="riskLevel" class="font-bold">-</span></p>
+                </div>
+                
+                <div id="guidelineText" class="text-lg text-center px-4 py-3 bg-white border border-gray-100 rounded-2xl italic text-slate-500">
+                    กรุณากรอกข้อมูลสัญญาณชีพ
+                </div>
+
+                <!-- BUTTONS -->
+                <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl transition shadow-lg active:scale-95 text-lg">
+                    <i class="fas fa-save mr-2"></i> บันทึกข้อมูล
+                </button>
+                
+                <div class="flex gap-2">
+                    <button type="button" onclick="searchData()" class="flex-1 bg-white text-slate-600 border border-slate-200 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 transition">
+                        <i class="fas fa-history mr-1"></i> ดูประวัติ HN
+                    </button>
+                    <button type="button" onclick="resetForm()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold text-sm hover:bg-slate-200 transition">
+                        <i class="fas fa-redo mr-1"></i> ล้างฟอร์ม
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- HISTORY SECTION -->
+        <div id="historySection" class="hidden mb-10 p-4 bg-white rounded-3xl shadow-lg border border-pink-50 overflow-hidden">
+            <h3 class="font-bold text-lg mb-4 text-pink-600 px-2">ประวัติ 10 ครั้งล่าสุด (HN: <span id="searchHn"></span>)</h3>
+            <div class="overflow-x-auto rounded-xl">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="bg-pink-50 text-pink-700">
+                        <tr>
+                            <th class="p-3">วัน/เวลา</th>
+                            <th class="p-3 text-center">Score</th>
+                            <th class="p-3">เกณฑ์</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody" class="text-slate-600 divide-y divide-pink-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest pb-10">
+            TropMed, Ward 14
+        </footer>
+    </div>
     <!-- เรียกใช้ไฟล์ Logic ของ App 1 -->
     <script src="app1.js"></script>
 </body>
