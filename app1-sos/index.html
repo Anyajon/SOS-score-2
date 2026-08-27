@@ -105,25 +105,35 @@
                             <label class="block text-lg font-bold text-slate-500 uppercase">🫁 RR (/min)</label>
                             <input type="number" name="rr" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="0">
                         </div>
-                        <!-- URINE SECTION (App 1.1) -->
+                        <!-- URINE SECTION (แบบแนวนอน 2 บรรทัดตามภาพ) -->
                         <div class="bg-slate-50/80 p-4 rounded-3xl border border-slate-100 space-y-3">
-                            <label class="block text-lg font-bold text-slate-500 uppercase">🚽 Urine (ปริมาณปัสสาวะ)</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-lg text-slate-500 font-bold mr-2">ระยะเวลา (ชั่วโมง)</label>
-                                    <!-- เปลี่ยนเป็น input number รับค่าได้ทุกตัวเลข -->
+    
+                            <!-- หัวข้อ URINE -->
+                            <div class="flex items-center gap-1.5 text-slate-500 font-bold text-sm tracking-wide uppercase">
+                                <span>🚽</span>
+                                <span>URINE (ปริมาณปัสสาวะ)</span>
+                            </div>
+
+                            <!-- INPUT ROWS -->
+                            <div class="space-y-2.5">
+                                <!-- บรรทัดที่ 1: ระยะ ____ ชม. -->
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-500 min-w-[48px]">ระยะ</span>
                                     <input type="number" step="0.5" min="0.1" name="urineHours" id="urineHours" value="8" oninput="calcScore()" 
-                   class="w-full text-base font-bold outline-none bg-slate-50 border border-slate-200 rounded-lg p-1.5" placeholder="8">
+                                           class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-center font-bold text-slate-700 text-sm outline-none focus:border-pink-500 shadow-sm" placeholder="8">
+                                    <span class="text-xs font-bold text-slate-500 min-w-[32px] text-right">ชม.</span>
                                 </div>
-                                <div>
-                                    <label class="block text-lg text-slate-500 font-bold mr-2">ปริมาณรวม (ml)</label>
+                                <!-- บรรทัดที่ 2: ปริมาณ ____ ml -->
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-500 min-w-[48px]">ปริมาณ</span>
                                     <input type="number" name="urine" id="urineInput" oninput="calcScore()" 
-                   class="w-full text-base font-bold outline-none bg-slate-50 border border-slate-200 rounded-lg p-1.5" placeholder="0">
+                                           class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-center font-bold text-slate-700 text-sm outline-none focus:border-pink-500 shadow-sm" placeholder="0">
+                                    <span class="text-xs font-bold text-slate-500 min-w-[32px] text-right">ml</span>
                                 </div>
                             </div>
-                            <!-- แสดงค่าคำนวณเฉลี่ยเทียบ 8 ชม. ให้พยาบาลเห็น -->
-                            <p id="urineCalculatedText" class="text-lg font-bold text-slate-500 text-right hidden">
-                                เฉลี่ยเทียบเท่า 8 ชม.: <span id="urine8hrVal" class="text-pink-600">0</span> ml
+                            <!-- แสดงผลคำนวณเฉลี่ย 8 ชม. -->
+                            <p id="urineCalculatedText" class="text-[11px] font-bold text-slate-400 text-right pt-1 hidden">
+                                เฉลี่ยเทียบเท่า 8 ชม.: <span id="urine8hrVal" class="text-pink-600 font-black">0</span> ml
                             </p>
                         </div>
                         <div class="bg-slate-50 p-3 rounded-2xl col-span-2">
