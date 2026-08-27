@@ -170,7 +170,265 @@
             TropMed, Ward 14
         </footer>
     </div>
-    <!-- เรียกใช้ไฟล์ Logic ของ App 1 -->
-    <script src="app1.js"></script>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+    // --- 1. CONFIG & SYSTEM ---
+    const gasUrl = "https://script.google.com/macros/s/AKfycbw8DZGydDsXnEvuIu7FAXarO2qsCxbAOCaPh5bUBNRfznbYU9i9JakzzuxwKz5kp_daXg/exec";
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleString('th-TH', { 
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' 
+        });
+    }
+    setInterval(updateClock, 1000);
+    window.onload = () => { updateClock(); checkOfflineData(); };
+
+    // --- 2. SEARCH & PATIENT MGMT ---
+    function searchByRoom() {
+        const room = document.getElementById('roomInput').value.trim();
+        if (!room) return Swal.fire('ระบุเลขห้อง', 'กรุณากรอกเลขห้องก่อนค้นหา', 'warning');
+
+        Swal.fire({ title: 'กำลังดึงข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        fetch(`${gasUrl}?action=getPatient&room=${encodeURIComponent(room)}`)
+            .then(res => res.json())
+            .then(patient => {
+                Swal.close();
+                if (patient && patient.hn) {
+                    document.getElementById('patientInfo').classList.remove('hidden');
+                    document.getElementById('emptyRoom').classList.add('hidden');
+                    
+                    document.getElementById('displayRoom').innerText = patient.room || room;
+                    document.getElementById('displayName').innerText = patient.name || '-';
+                    document.getElementById('displayHN').innerText = patient.hn || '-';
+                    
+                    document.getElementById('nameInput').value = patient.name || '';
+                    document.getElementById('hnInput').value = patient.hn || '';
+                    
+                    Swal.fire({ icon: 'success', title: 'พบข้อมูลคนไข้', timer: 1000, showConfirmButton: false });
+                } else {
+                    document.getElementById('patientInfo').classList.add('hidden');
+                    document.getElementById('emptyRoom').classList.remove('hidden');
+                    Swal.fire('เตียงว่าง', 'ไม่มีคนไข้ในระบบ BedRegistry', 'info');
+                }
+            })
+            .catch(() => Swal.fire('ผิดพลาด', 'เชื่อมต่อ Server ไม่ได้', 'error'));
+    }
+
+    function handleDischarge() {
+        const hn = document.getElementById('displayHN').innerText;
+        if (!hn || hn === '-') return;
+
+        Swal.fire({
+            title: 'จำหน่ายคนไข้?',
+            text: `ยืนยันการ Discharge HN: ${hn}`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+                fetch(gasUrl, { method: "POST", body: JSON.stringify({ action: "discharge", hn: hn }) })
+                    .then(() => Swal.fire('จำหน่ายแล้ว', '', 'success').then(() => location.reload()))
+                    .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'));
+            }
+        });
+    }
+
+    // --- 3. SOS SCORE CALCULATION ---
+    function calcScore() {
+        const f = document.getElementById('sosForm');
+        let s = 0;
+        
+        // Temperature
+        const temp = parseFloat(f.temp.value);
+        if (!isNaN(temp)) {
+            if (temp <= 35.0 || temp >= 38.5) s += 2;
+            else if (temp <= 36.0 || (temp >= 38.1 && temp <= 38.4)) s += 1;
+        }
+
+        // Systolic BP
+        const sbp = parseFloat(f.sbp.value);
+        if (!isNaN(sbp)) {
+            if (sbp <= 80) s += 3;
+            else if (sbp <= 90 || sbp >= 200) s += 2;
+            else if (sbp <= 100 || (sbp >= 181 && sbp <= 199)) s += 1;
+        }
+
+        // Pulse Rate
+        const p = parseFloat(f.pulse.value);
+        if (!isNaN(p)) {
+            if (p <= 40 || p >= 140) s += 3;
+            else if (p >= 121 && p <= 139) s += 2;
+            else if ((p >= 41 && p <= 50) || (p >= 101 && p <= 120)) s += 1;
+        }
+
+        // Respiratory Rate
+        const rr = parseFloat(f.rr.value);
+        if (!isNaN(rr)) {
+            if (rr <= 8 || rr >= 35) s += 3;
+            else if (rr >= 26 && rr <= 34) s += 2;
+            else if (rr >= 21 && rr <= 25) s += 1;
+        }
+
+        // Urine Output (8 hrs)
+        if (f.urine.value !== "") {
+            const u = parseFloat(f.urine.value);
+            if (!isNaN(u)) {
+                if (u <= 160) s += 2;
+                else if (u <= 319) s += 1;
+            }
+        }
+
+        // Consciousness
+        s += parseInt(f.con.value) || 0;
+
+        document.getElementById('totalScore').innerText = s;
+
+        // Risk Level & Guidelines Criteria
+        let level = "Low", guide = "ติดตามผู้ป่วยตามปกติ, ประเมิน SOS Score ตามปกติ", color = "bg-green-100 text-green-700";
+        if (s >= 4) { 
+            level = "High"; 
+            guide = "รายงานแพทย์ทันที! V/S ทุก 15-30 นาที"; 
+            color = "bg-red-500 text-white"; 
+        } else if (s >= 1) { 
+            level = "Moderate"; 
+            guide = "V/S ทุก 4 ชม., รายงาน In-charge เพื่อพิจารณารายงานแพทย์"; 
+            color = "bg-yellow-400 text-slate-800"; 
+        }
+
+        const disp = document.getElementById('scoreDisplay');
+        disp.className = `p-5 rounded-3xl text-center transition-all duration-500 ${color} shadow-inner`;
+        document.getElementById('riskLevel').innerText = level;
+        document.getElementById('guidelineText').innerText = guide;
+        
+        return { score: s, level: level, guide: guide };
+    }
+
+    // --- 4. SUBMIT DATA & OFFLINE ---
+    document.getElementById('sosForm').onsubmit = function(e) {
+        e.preventDefault();
+        const res = calcScore();
+        const formData = {
+            room: document.getElementById('roomInput').value,
+            name: this.name.value,
+            hn: this.hn.value,
+            temp: this.temp.value,
+            sbp: this.sbp.value,
+            pulse: this.pulse.value,
+            rr: this.rr.value,
+            urine: this.urine.value,
+            con: this.con.options[this.con.selectedIndex].text,
+            totalScore: res.score,
+            riskLevel: res.level,
+            guideline: res.guide
+        };
+
+        if (res.score >= 4) {
+            Swal.fire({
+                title: '🆘 High Score!',
+                text: 'สาเหตุเกิดจาก Sepsis หรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ใช่ (Sepsis)',
+                cancelButtonText: 'ไม่ใช่'
+            }).then((result) => {
+                formData.isSepsis = result.isConfirmed ? "ใช่" : "ไม่ใช่";
+                formData.sepsisAction = result.isConfirmed ? "ให้ปฏิบัติตาม Sepsis Flow" : "Monitor ทุก 15-30 นาที จน SOS<4/แพทย์บอกว่า stable then monitor ทุก 1 hr. อีก 4 hr./ SOS<4 then monitor ทุก 4 hr. จนครบ 24 hr.";
+                sendToServer(formData);
+            });
+        } else {
+            formData.isSepsis = "-";
+            formData.sepsisAction = res.guide;
+            sendToServer(formData);
+        }
+    };
+
+    function sendToServer(data) {
+        if (!navigator.onLine) {
+            let queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
+            queue.push(data);
+            localStorage.setItem('sos_offline_queue', JSON.stringify(queue));
+            Swal.fire('Offline Mode', 'บันทึกลงเครื่องแล้ว ระบบจะซิงค์อัตโนมัติเมื่อเชื่อมต่ออินเทอร์เน็ต', 'info');
+            return;
+        }
+
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+        fetch(gasUrl, { method: "POST", body: JSON.stringify(data) })
+            .then(() => {
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500, showConfirmButton: false });
+                resetForm();
+            })
+            .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถบันทึกไปยังฐานข้อมูลได้', 'error'));
+    }
+
+    // --- 5. HISTORY & UTILS ---
+    function searchData() {
+        const hn = document.getElementById('hnInput').value;
+        if (!hn) return Swal.fire('โปรดระบุ HN ในช่องกรอกข้อมูล');
+        
+        Swal.fire({ title: 'กำลังค้นหาประวัติ...', didOpen: () => Swal.showLoading() });
+        fetch(`${gasUrl}?hn=${encodeURIComponent(hn)}`)
+            .then(res => res.json())
+            .then(data => {
+                Swal.close();
+                const section = document.getElementById('historySection');
+                section.classList.remove('hidden');
+                section.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('searchHn').innerText = hn;
+                
+                let html = '';
+                if (Array.isArray(data) && data.length > 0) {
+                    data.forEach(row => {
+                        html += `<tr>
+                            <td class="p-3">${row[0].split(' ')[1] || ''}<br><small class="text-gray-400">${row[0].split(' ')[0] || ''}</small></td>
+                            <td class="p-3 text-center font-bold text-lg">${row[10] !== undefined ? row[10] : '-'}</td>
+                            <td class="p-3"><span class="px-2 py-1 rounded-full text-[10px] bg-slate-100 font-bold">${row[11] || '-'}</span></td>
+                        </tr>`;
+                    });
+                }
+                document.getElementById('historyBody').innerHTML = html || '<tr><td colspan="3" class="p-4 text-center text-gray-400">ไม่พบประวัติการบันทึก</td></tr>';
+            })
+            .catch(() => Swal.fire('ผิดพลาด', 'ไม่สามารถดึงข้อมูลประวัติได้', 'error'));
+    }
+
+    function checkOfflineData() {
+        const queue = JSON.parse(localStorage.getItem('sos_offline_queue') || "[]");
+        if (queue.length > 0 && navigator.onLine) {
+            Swal.fire({
+                title: 'พบข้อมูลค้างส่ง!',
+                text: `คุณมีข้อมูล ${queue.length} รายการที่บันทึกช่วงออฟไลน์ ต้องการซิงค์ขึ้นระบบเลยไหม?`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'ส่งข้อมูล',
+                cancelButtonText: 'ไว้ทีหลัง'
+            }).then(res => { if(res.isConfirmed) syncOffline(queue); });
+        }
+    }
+
+    function syncOffline(queue) {
+        if (queue.length === 0) { 
+            localStorage.removeItem('sos_offline_queue'); 
+            return Swal.fire('สำเร็จ', 'ซิงค์ข้อมูลออฟไลน์ทั้งหมดแล้ว', 'success'); 
+        }
+        const item = queue.shift();
+        fetch(gasUrl, { method: "POST", body: JSON.stringify(item) })
+            .then(() => syncOffline(queue))
+            .catch(() => Swal.fire('ผิดพลาด', 'การซิงค์หยุดชะงัก โปรดลองใหม่อีกครั้ง', 'error'));
+    }
+
+    function resetForm() {
+        document.getElementById('sosForm').reset();
+        calcScore();
+    }
+
+    function showAdmitForm() { 
+        document.getElementById('nameInput').focus(); 
+    }
+    </script>
 </body>
 </html>
