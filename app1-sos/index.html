@@ -105,9 +105,26 @@
                             <label class="block text-lg font-bold text-slate-500 uppercase">🫁 RR (/min)</label>
                             <input type="number" name="rr" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="0">
                         </div>
-                        <div class="bg-slate-50 p-3 rounded-2xl col-span-2">
-                            <label class="block text-lg font-bold text-slate-500 uppercase">🚽 Urine in 8 hr. (ml)</label>
-                            <input type="number" name="urine" oninput="calcScore()" class="w-full bg-transparent text-lg font-bold outline-none" placeholder="ระบุจำนวน">
+                        <!-- URINE SECTION (App 1.1) -->
+                        <div class="border-2 border-slate-300 rounded-2xl p-3 bg-white space-y-2">
+                            <label class="block text-xs font-bold text-slate-600">🚽 Urine (ปริมาณปัสสาวะ)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 font-bold mb-1">ระยะเวลา (ชั่วโมง)</label>
+                                    <!-- เปลี่ยนเป็น input number รับค่าได้ทุกตัวเลข -->
+                                    <input type="number" step="0.5" min="0.1" name="urineHours" id="urineHours" value="8" oninput="calcScore()" 
+                   class="w-full text-base font-bold outline-none bg-slate-50 border border-slate-200 rounded-lg p-1.5" placeholder="8">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 font-bold mb-1">ปริมาณรวม (ml)</label>
+                                    <input type="number" name="urine" id="urineInput" oninput="calcScore()" 
+                   class="w-full text-base font-bold outline-none bg-slate-50 border border-slate-200 rounded-lg p-1.5" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- แสดงค่าคำนวณเฉลี่ยเทียบ 8 ชม. ให้พยาบาลเห็น -->
+                            <p id="urineCalculatedText" class="text-[11px] font-bold text-slate-400 text-right hidden">
+                                เฉลี่ยเทียบเท่า 8 ชม.: <span id="urine8hrVal" class="text-pink-600">0</span> ml
+                            </p>
                         </div>
                         <div class="bg-slate-50 p-3 rounded-2xl col-span-2">
                             <label class="block text-lg font-bold text-slate-500 uppercase">ความรู้สึกตัว</label>
@@ -278,15 +295,29 @@
             else if (rr >= 26 && rr <= 34) s += 2;
             else if (rr >= 21 && rr <= 25) s += 1;
         }
+       // --- URINE CALCULATION LOGIC ---
+        const urineVal = parseFloat(f.urine.value);
+       // ถ้าไม่ได้กรอกชั่วโมง ให้ Default ไว้ที่ 8 ชั่วโมง
+        const urineHrs = parseFloat(f.urineHours.value) > 0 ? parseFloat(f.urineHours.value) : 8;
 
-        // Urine Output (8 hrs)
-        if (f.urine.value !== "") {
-            const u = parseFloat(f.urine.value);
-            if (!isNaN(u)) {
-                if (u <= 160) s += 2;
-                else if (u <= 319) s += 1;
-            }
-        }
+        const calcText = document.getElementById('urineCalculatedText');
+        const display8hr = document.getElementById('urine8hrVal');
+
+        if (!isNaN(urineVal) && urineVal >= 0) {
+    // สูตรคำนวณ: (ปริมาณปัสสาวะ ÷ ชั่วโมงที่ระบุ) × 8
+            const equiv8hr = (urineVal / urineHrs) * 8;
+            // แสดงค่าเฉลี่ยแบบปัดเศษคำนวณง่าย
+            display8hr.innerText = Math.round(equiv8hr);
+            calcText.classList.remove('hidden');
+            // ประเมินคะแนน SOS Score จากปริมาณเทียบเท่า 8 ชม.
+            if (equiv8hr <= 160) {
+                s += 2; // ออกน้อยมาก (<= 20 ml/hr)
+            } else if (equiv8hr <= 319) {
+                s += 1; // ออกค่อนข้างน้อย (20 - 40 ml/hr)
+              }
+        } else {
+            calcText.classList.add('hidden');
+}
 
         // Consciousness
         s += parseInt(f.con.value) || 0;
