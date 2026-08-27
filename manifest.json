@@ -1,7 +1,7 @@
 {
-  "short_name": "SOS Score",
-  "name": "SOS Score Assessment System",
-  "description": "แบบประเมินสภาพผู้ป่วยที่มีอาการทรุดลงโดยใช้ SOS Score",
+  "short_name": "TropMed Ward 14",
+  "name": "Tropical Medicine private ward 14 System",
+  "description": "Application ที่ช่วยพัฒนาคุณภาพการทำงาน",
   "icons": [
     {
       "src": "icon.png",
